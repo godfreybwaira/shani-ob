@@ -6,4 +6,10 @@ using the idea of HATEOAS (Hypermedia as the engine of application state).
 1. Uses available HTML attributes and custom attributes to interact with the server
 2. Supports custom HTTP methods for REST application
 3. Zero dependency
-4. 
+4. Web Socket support
+5. Server Sent Event (SSE) support
+6. AJAX support
+7. Custom Events support
+8. Event Synchronization
+9. 3rd part extensions and library support
+10. Framework agnostic
