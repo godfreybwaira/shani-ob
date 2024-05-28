@@ -25,14 +25,14 @@ using the idea of HATEOAS (Hypermedia as the engine of application state).
 
 **Shani-ob** has the following attributes:
 
-1. `shani-mw`
+1. `shani-fn`
 2. `shani-target`
 3. `shani-header`
 4. `shani-plugin`
 5. `shani-poll`
 6. `shani-insert`
 7. `shani-css`
-8. `shani-fn`
+8. `shani-mw`
 9. `shani-scheme`
 10. `shani-watch`
 11. `watch-on`
@@ -47,10 +47,16 @@ Other supported HTML attributes are:
 Let us learn by examples. Look at the following `html` codes:
 
 ```html
-<input type="search" shani-on="keyup|change" id="search" method="GET" action="/users/search" />
+<input type="search" shani-fn="r" shani-on="keyup|change" id="search" method="GET" action="/users/search" />
 ```
-* The attribute `shani-on` accepts one or more valid javascript events separated by `|` (pipe).
-This tells the browser to register events `keyup` and `change` (in this case) on `input` element.
+* The attribute `shani-on` accepts one or more valid javascript events separated
+by `|` (pipe). This tells the browser to register events `keyup` and `change`
+(in this case) on `input` element. If attribute `shani-on` was not specified, the default
+`shani-on="change"` will be used (for all `input`, `select` and `textarea` elements).
+
+* Attribute `shani-fn` has the value `r` which tells the browser to read data
+from server using `GET` method. Other values for `shani-fn` includes `w`, `copy`,
+`print` and `fs`. The descriptions about these values will be given later.
 
 * The `method` attribute tells the browser to use HTTP `GET` request method to fetch data
 using AJAX. You can use any request method including your custom request methods
@@ -62,12 +68,12 @@ that can be used instead of `action` attribute include `href` or `value` attribu
 Now consider the following HTML code:
 
 ```html
-<div shani-watch="input#search" watch-on="change" shani-insert="replace"></div>
+<div shani-watch="input#search" watch-on="change" shani-insert></div>
 ```
 
 * The `div` element listens for `change` event on `input` element with id of `search`
-so that whenever the result is returned by the browser it is inserted to the
-`div` element (replacing the existing content inside `div`).
+so that whenever the result is returned by the browser it is inserted to the `div`
+element (replacing the existing content inside `div`).
 
 ## Contributing
 
