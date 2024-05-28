@@ -185,7 +185,7 @@ are separated by `|`.
 
 **Syntax:**
 
-`shani-plugin="event_or_statusCode:pluginName[:param1[:param2]][|event_or_statusCode:pluginName[:param1[:param2]]]`
+`shani-plugin="event_or_statusCode:pluginName[:param1[:param2]][|event_or_statusCode:pluginName[:param1[:param2]]]"`
 
 **Example:**
 
@@ -414,7 +414,7 @@ codes returned by server. It is used along side with `shani-watch` attribute.
 
 **Syntax:**
 
-`watch-on="eventName_or_statusCode[|eventName_or_statusCode]`
+`watch-on="eventName_or_statusCode[|eventName_or_statusCode]"`
 
 **Example:**
 
@@ -443,7 +443,7 @@ attribute the defaults will me assumed.
 
 **Syntax:**
 
-`shani-on="eventName_or_statusCode[|eventName_or_statusCode]`
+`shani-on="eventName_or_statusCode[|eventName_or_statusCode]"`
 
 **Example:**
 
