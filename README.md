@@ -72,7 +72,7 @@ Now consider the following HTML code:
 ```
 
 * The `div` element listens for `change` event on `input` element with id of `search`
-so that whenever the result is returned by the browser it is inserted to the `div`
+so that whenever the result is returned by the browser is inserted to the `div`
 element (replacing the existing content inside `div`).
 
 ## Contributing
