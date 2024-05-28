@@ -171,7 +171,7 @@
                 const mode = Utils.object({
                     before: 'beforebegin', after: 'afterend', remove: 'remove',
                     first: 'afterbegin', last: 'beforeend', delete: 'delete',
-                    replace: 'replace'
+                    replace: 'replace', append: 'append'
                 })[obj.req.insert];
                 if (mode) {
                     const hd = obj.resp.headers;
