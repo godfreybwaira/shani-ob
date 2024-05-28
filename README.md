@@ -148,6 +148,77 @@ When a button is clicked, the callback `copy` is called, copying the content of
 When a button is clicked, the callback `fs` is called, triggering full screen
 showing only the content of `div#page2`.
 
+### 1.3 `shani-header`
+
+**Description:**
+
+`shani-header sends one or more HTTP headers to server. Any HTTP header including
+custom headers can be send. Multiple headers are separated by `|` (pipe) while
+header key and value are separated by `:` (colon).
+
+**Syntax:**
+
+`shani-header="header-name1:header-value1[|header-name1:header-value1]"`
+
+**Example:**
+
+```html
+<div shani-header="x-powered-by:shani-ob|accept:text/html" action="/users/3/activities"
+shani-on="load" shani-fn="r" shani-insert>Loading content, please wait...</div>
+```
+
+**Explanation:**
+
+when `div` load or page loaded send the following headers `x-powered-by` and `accept`
+and get content from "/users/3/activities" and insert into this `div`.
+
+### 1.4 `shani-plugin`
+
+**Description:**
+
+`shani-plugin` invoke user defined javascript function when an event is fired by
+shani object. User can listen to an event generated as `shani:pluginName` and perform
+the required action. If parameters were given, these parameters will be available on
+`event.detail` object. Use any separator for parameters except `|`, multiple plugins
+are separated by `|`.
+
+**Syntax:**
+
+`shani-plugin="pluginName[:param1[:param2]][|pluginName[:param1[:param2]]]`
+
+**Example:**
+
+```html
+<a href="/users/0/data" shani-plugin="toaster:color red" shani-fn="r"> Click me</a>
+```
+
+**Explanation:**
+
+When a link is clicked the event named `shani:toaster` is fired. The event object
+will contain detail object with object `{params:"color red"}`. Note the space which
+was used to separate parameters.
+
+### 1.5 `shani-poll`
+
+**Description:**
+
+`shani-poll` used to create polling via AJAX to a remote server. It can be used to
+run callback given the defined duration in seconds.
+
+**Syntax:**
+
+`shani-poll="start[:steps[:limit]]"`
+
+**Example:**
+
+```html
+<a href="/users/0/data" shani-poll="2:3:5" shani-fn="r"> Click me</a>
+```
+**Explanation:**
+
+When a link is clicked, after two seconds the data will be fetched from "/users/0/data"
+then after every three seconds the same action will be performed until five times
+then it will stop.
 
 ## Contributing
 
@@ -159,3 +230,6 @@ Please make sure to update tests as appropriate.
 ## License
 
 [GPL-3.0](https://choosealicense.com/licenses/gpl-3.0/)
+
+
+zenye events ni css, mw, plugin 1953
