@@ -52,8 +52,9 @@ Let us learn by examples. Look at the following `html` codes:
 * The attribute `shani-on` accepts one or more valid javascript events separated by `|` (pipe).
 This tells the browser to register events `keyup` and `change` (in this case) on `input` element.
 
-* The `method` attribute tells the browser to use HTTP `GET` request method.
-You can use and request method including your custom request methods.
+* The `method` attribute tells the browser to use HTTP `GET` request method to fetch data
+using AJAX. You can use any request method including your custom request methods
+supported by your server.
 
 * The `action` attribute specifies the URL that will handle the request. Other attributes
 that can be used instead of `action` attribute include `href` or `value` attribute.
