@@ -4,19 +4,15 @@
     "type": "split",
     "children": [
       {
-        "id": "1093085de401af4e",
+        "id": "652e875adfe2f230",
         "type": "tabs",
         "children": [
           {
-            "id": "e4badec131c4976c",
+            "id": "50b60d74b096ad43",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "README.md",
-                "mode": "source",
-                "source": false
-              }
+              "type": "empty",
+              "state": {}
             }
           }
         ]
@@ -146,7 +142,7 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "e4badec131c4976c",
+  "active": "142a5e372eb5f0fc",
   "lastOpenFiles": [
     "README.md",
     "Welcome.md"
