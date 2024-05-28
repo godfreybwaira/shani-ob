@@ -11,8 +11,12 @@
             "id": "50b60d74b096ad43",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "README.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
         ]
@@ -142,7 +146,7 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "142a5e372eb5f0fc",
+  "active": "50b60d74b096ad43",
   "lastOpenFiles": [
     "README.md",
     "Welcome.md"

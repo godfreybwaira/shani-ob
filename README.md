@@ -47,7 +47,7 @@ Other supported HTML attributes are:
 Let us learn by examples. Look at the following `html` codes:
 
 ```html
-<input type="search" shani-on="keyup|change" id="search" method="GET" placeholder="Search user" action="/users/search" />
+<input type="search" shani-on="keyup|change" id="search" method="GET" action="/users/search" />
 ```
 * The attribute `shani-on` accepts one or more valid javascript events separated by pipe (|).
 This tells the browser to register events `keyup` and `change` (in this case) on `input` element.
