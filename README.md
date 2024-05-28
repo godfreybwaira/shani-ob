@@ -75,6 +75,80 @@ Now consider the following HTML code:
 so that whenever the result is returned by the browser is inserted to the `div`
 element (replacing the existing content inside `div`).
 
+## 1. Attributes
+### 1.1 `shani-fn`
+
+**Description:**
+
+`shani-fn` or shani function is used to define a callback function for given event(s)
+
+**Syntax:**
+
+`shani-fn="value"` where `value` can be one of
+
+* `r` (reading from server e.g: shani-fn="r")
+* `w` (writing to server e.g: shani-fn="w")
+* `print` (printing part of html document e.g: shani-fn="print" shani-target="selector")
+* `fs` (full screen part of html document e.g: shani-fn="fs" shani-target="selector")
+* `copy` (copy content of a document e.g: shani-fn="fs" shani-target="selector")
+
+**Example:**
+
+```html
+<a shani-fn="r" shani-on="click" method="GET" href="/users/2/profile">View my Profile</a>
+```
+
+**Explanation:**
+
+When a link is clicked, the callback `r` is called, triggering GET request to URL
+specified by `href` attribute. The output is discarded. if you want the output then
+use `shani-insert` attribute.
+
+
+### 1.2 `shani-target`
+
+**Description:**
+
+`shani-target` is used to define a target element which will be affected by the
+callback action. This atribute is used only when `shani-fn="print|fs|copy"`.
+
+**Syntax:**
+
+`shani-target="selector"` where `selector` can be any valid css selector.
+
+**Example 1:**
+
+```html
+<button shani-fn="print" shani-target="div#page2">Print Page 2</button>
+```
+**Explanation:**
+
+When a button is clicked, the callback `print` is called, triggering print dialog
+box to print the content of `div#page2`.
+
+
+**Example 2:**
+
+```html
+<button shani-fn="copy" shani-target="div#page2">Copy Page 2</button>
+```
+**Explanation:**
+
+When a button is clicked, the callback `copy` is called, copying the content of
+`div#page2` to clipboard.
+
+
+**Example 3:**
+
+```html
+<button shani-fn="fs" shani-target="div#page2">View full Scrren</button>
+```
+**Explanation:**
+
+When a button is clicked, the callback `fs` is called, triggering full screen
+showing only the content of `div#page2`.
+
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
