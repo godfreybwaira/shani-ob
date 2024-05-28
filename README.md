@@ -152,7 +152,7 @@ showing only the content of `div#page2`.
 
 **Description:**
 
-`shani-header sends one or more HTTP headers to server. Any HTTP header including
+`shani-header` sends one or more HTTP headers to server. Any HTTP header including
 custom headers can be send. Multiple headers are separated by `|` (pipe) while
 header key and value are separated by `:` (colon).
 
@@ -230,6 +230,3 @@ Please make sure to update tests as appropriate.
 ## License
 
 [GPL-3.0](https://choosealicense.com/licenses/gpl-3.0/)
-
-
-zenye events ni css, mw, plugin 1953
