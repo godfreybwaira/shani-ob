@@ -291,7 +291,7 @@ element having this attribute (if no value is given).
 **Description:**
 
 `shani-css` is used to manipulate css classes based on given _event_ fired by element
-or _status code_ returned by server.
+or _status code_ returned by server. You can use multiple callbacks separated by `|`
 
 **Syntax:**
 
@@ -307,6 +307,7 @@ or _status code_ returned by server.
 
 When status code `404` is returned by server, add css classes `danger` and `bold`
 to element `a`
+
 **Example 2: (Removing classes from element)**
 
 ```html
@@ -343,9 +344,9 @@ and element `a`.
 
 **Description:**
 
-If you want to apply your own function on output returned by server before render
-it to a web page, you should `shani-mw` (shani middleware) attribute. It can be
-used to format output or change it before inserting it to web page.
+If you want to apply your own function on output returned by server before rendering
+to a web page, you should `shani-mw` (shani middleware) attribute. It is used to
+format output or change it before inserting it to web page.
 
 **Syntax:**
 
@@ -358,25 +359,26 @@ used to format output or change it before inserting it to web page.
 ```
 **Explanation:**
 
-When the status code `200` is returned bu the server, call user defined function
-(middleware) named `Data.formatJSON`, but if the status code is `404` call user defined
-function `showNotFound`. The `this` object will be shani object. This middleware
-MUST return non null value after finishing.
+When the status code `200` is returned, call user defined function (middleware)
+named `Data.formatJSON`, but if the status code is `404` call user defined
+function `showNotFound`. The `this` object inside those callbacks will be shani
+object. This middleware MUST return a value after finishing.
 
 ### 1.9 `shani-scheme`
 
 **Description:**
 
-All requests send by the browser via AJAX, if you want to establish web socket connetion
-or server-sent-event use `shani-scheme`. Only permitted values are: ws, wss and sse
-where ws refers to _web socket_, wss is _secure web socket_ and sse is _server sent event_.
-Make sure your server supports web socket before using this feature.
+In Shani-ob, all requests send by the browser via AJAX, if you want to establish
+web socket connetion or server-sent-event use `shani-scheme` with values `ws` or `wss`
+and `sse` respectively where ws refers to _web socket_, wss is _secure web socket_
+and sse is _server sent event_. Make sure your server supports web socket or server
+sent event before using this feature.
 
 **Syntax:**
 
 `shani-scheme="ws|wss|sse"`
 
-**Example:**
+**Example 1: (Using websocket)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-mw="200:Data.formatJSON" shani-scheme="ws">Click me</a>
@@ -384,7 +386,18 @@ Make sure your server supports web socket before using this feature.
 
 **Explanation:**
 
-When a link is clicked, establish a web socket connection.
+When a link is clicked, establish a web socket connection to `ws://[yourhost]/users/0/data`.
+
+**Example 2: (Using server-sent-event)**
+
+```html
+<a href="/users/0/data" shani-fn="r" shani-scheme="sse">Click me</a>
+```
+
+**Explanation:**
+
+When a link is clicked, establish server-sent-event connection to `[yourhost]/users/0/data`.
+The default scheme used here is the current scheme used by web browser (either http or https)
 
 ### 1.10 `shani-watch`
 
