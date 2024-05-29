@@ -518,10 +518,10 @@ window.Shanify(HTMLElement|string nodes_or_selector, object shaniAttributes, boo
 **Example:**
 
 ```js
-window.Shanify('.page', {
+Shanify('.page', {
     'shani-fn':'r',
     'shani-on':'click|keyup',
-    href:'/content/2/page'
+    'href':'/content/2/page'
 }, false);
 ```
 
