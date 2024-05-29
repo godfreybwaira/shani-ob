@@ -130,7 +130,7 @@
         const setInput = function (node, data, mode) {
             if (mode === 'first') {
                 node.value = data + node.value;
-            } else if (mode === 'append') {
+            } else if (mode === 'last') {
                 node.value += data;
             } else if (mode === 'replace') {
                 node.value = data;
@@ -171,7 +171,7 @@
                 const mode = Utils.object({
                     before: 'beforebegin', after: 'afterend', remove: 'remove',
                     first: 'afterbegin', last: 'beforeend', delete: 'delete',
-                    replace: 'replace', append: 'append'
+                    replace: 'replace'
                 })[obj.req.insert];
                 if (mode) {
                     const hd = obj.resp.headers;

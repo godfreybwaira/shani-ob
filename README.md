@@ -178,8 +178,8 @@ shani-on="load" shani-fn="r" shani-insert>Loading content, please wait...</div>
 
 **Explanation:**
 
-when `div` load or page loaded send the following headers `x-powered-by` and `accept`
-and get content from "/users/3/activities" and insert into this `div`.
+when page loaded send the headers `x-powered-by` and `accept` then get content
+from "/users/3/activities" and insert into this `div`.
 
 ### 1.4 `shani-plugin`
 
@@ -445,6 +445,8 @@ Some built-in events have direct meaning, such as:
 7. `progress`: fired when server is processing the client request (e.g: during file upload)
 8. `init`: fired when shani object is created
 9. `copy`: fired when page content is copied
+10. `load`: fired when the page loads
+11. `demand`: fired when the element is visible to the DOM
 
 **Syntax:**
 
