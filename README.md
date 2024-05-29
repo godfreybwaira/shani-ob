@@ -503,7 +503,7 @@ text/csv depending what type your server supports. Look at the following example
 **Explanation:**
 
 The form above will be sent to "/handler/form" using POST HTTP method as "application/json".
-Mind you that this current version of `shani-ob` does not send file as JSON.
+Mind you that this current version of `shani-ob` does not support sending file as JSON.
 
 ## Contributing
 
