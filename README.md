@@ -378,7 +378,7 @@ Make sure your server supports web socket or server sent event before using this
 **Example 1: (Using websocket)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-mw="200:Data.formatJSON" shani-scheme="ws">Click me</a>
+<a href="/users/0/data" shani-fn="r" shani-scheme="ws">Click me</a>
 ```
 
 **Explanation:**
