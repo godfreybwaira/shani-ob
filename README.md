@@ -17,6 +17,7 @@ using the idea of HATEOAS (Hypermedia as the engine of application state).
 9. Event Synchronization
 10. 3rd part extensions and library support
 11. Framework agnostic
+12. Direct supports for JSON, XML, CSV and YAML
 
 
 ## Installation
@@ -61,6 +62,10 @@ by `|` (pipe). This tells the browser to register events `keyup` and `change`
 * Attribute `shani-fn` has the value `r` which tells the browser to read data
 from server using `GET` method. Other values for `shani-fn` includes `w`, `copy`,
 `print` and `fs`. The descriptions about these values will be given later.
+
+* The main difference between `r` (read) and `w` (write) callbacks is that `r` uses
+'GET' as default HTTP method while `w` uses 'POST' as default HTTP method. However,
+you can override HTTP method using `method` attribute on both callbacks.
 
 * The `method` attribute tells the browser to use HTTP `GET` request method to fetch data
 using AJAX. You can use any request method including your custom request methods
@@ -403,8 +408,9 @@ The default scheme used here is the current scheme used by web browser (either h
 
 **Description:**
 
-`shani-watch` attribute is used to watch for event fired by another HTML element then
-perform required action. One element fire event, another element react to this event.
+`shani-watch` attribute is used to watch for events fired by another HTML element then
+perform required action. One element fire event, another element react to that event.
+You can watch one or more elements separated by comma.
 
 **Syntax:**
 
@@ -419,7 +425,7 @@ perform required action. One element fire event, another element react to this e
 **Explanation:**
 
 This `div.container` watches for an element with id `profile` when it is clicked.
-If you ommit `watch-on` attribute the default value will be `watch-on="init"`.
+You can ommit `watch-on` attribute to watch for an element as soon as it is created.
 
 ### 1.11 `watch-on`
 
@@ -427,6 +433,16 @@ If you ommit `watch-on` attribute the default value will be `watch-on="init"`.
 
 `watch-on` attribute is used to define watching events fired by element or status
 codes returned by server. It is used along side with `shani-watch` attribute.
+
+Some built-in events have direct meaning, such as:
+
+1. `ready`: fired when server return output or status code (mostly 200)
+2. `abort`: fired when connection to server is cancelled by client
+3. `error`: fired when client fails to connect to server
+4. `timeout`: fired when connection to server timed out
+5. `loadstart`: fired when client starts to send data to server
+6. `end': fired when server finished to send data to client
+7. `progress`: fired when server is processing the client request
 
 **Syntax:**
 
@@ -471,6 +487,26 @@ attribute the defaults will me assumed.
 
 This `div.container` watches for an element with id `profile` when it is clicked.
 If you ommit `watch-on` attribute the default value will be `watch-on="init"`.
+
+## Tips
+
+* To disable any element use `disable` attribute of the HTML
+* You can listen to all events using `*` eg: `watch-on="*"`
+
+## Sending JSON, XML, CSV or YAML
+
+You can directly send JSON, XML, CSV or YAML to server using `shani-ob`.
+This can be achieved through enctype attribute or `shani-header="content-type:[your_type]"`
+where [your_type] can be any of application/json, text/yaml, application/xml or
+text/csv depending what type your server supports. Look at the following example:
+
+```html
+<form method="POST" enctype="application/json" shani-on="submit" shani-fn="w" action="/handler/form"></form>
+```
+**Explanation:**
+
+The form above will be sent to "/handler/form" using POST HTTP method as "application/json".
+Mind you that this current version of `shani-ob` does not send file as JSON.
 
 ## Contributing
 
