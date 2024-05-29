@@ -264,10 +264,10 @@ then it will stop.
 <a href="/users/0/data" shani-fn="r" shani-insert="last">Insert my last child</a>
 ```
 
-**Example 5: (Overwrite this element's content)**
+**Example 5: (Replace this element's content)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-insert="replace">Overwrite my content</a>
+<a href="/users/0/data" shani-fn="r" shani-insert="replace">Replace my content</a>
 ```
 
 **Example 6: (Delete this element)**
