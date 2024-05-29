@@ -443,6 +443,8 @@ Some built-in events have direct meaning, such as:
 5. `loadstart`: fired when client starts to send data to server
 6. `end': fired when server finished to send data to client
 7. `progress`: fired when server is processing the client request
+8. `init`: fired when shani object is created
+9. `copy` fired when page content is copied
 
 **Syntax:**
 
