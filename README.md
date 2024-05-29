@@ -518,7 +518,11 @@ window.Shanify(HTMLElement|string nodes_or_selector, object shaniAttributes, boo
 **Example:**
 
 ```js
-window.Shanify('.page', {'shani-fn':'r','shani-on':'click|keyup',href:'/content/2/page'}, false);
+window.Shanify('.page', {
+    'shani-fn':'r',
+    'shani-on':'click|keyup',
+    href:'/content/2/page'
+}, false);
 ```
 
 **Explanation:**
