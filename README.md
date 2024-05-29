@@ -505,6 +505,29 @@ text/csv depending what type your server supports. Look at the following example
 The form above will be sent to "/handler/form" using POST HTTP method as "application/json".
 Mind you that this current version of `shani-ob` does not support sending file as JSON.
 
+## Shanifying your HTML
+
+You can programatically apply `Shanify` global method to any element on page.
+
+**Syntax:**
+
+```js
+window.Shanify(HTMLElement|string nodes_or_selector, object shaniAttributes, bool applyToSelf = false);
+```
+
+**Example:**
+
+```js
+window.Shanify('.page', {'shani-fn':'r','shani-on':'click|keyup',href:'/content/2/page'}, false);
+```
+
+**Explanation:**
+
+`nodes_or_selector` can be of type string or HTMLElement, if it is `string` then it
+must be valid css selector. `shaniAttributes` must be object of supported shani
+attributes alongside with their values. When `applyToSelf` is set to true, then
+`nodes_or_selector` will be shanified, else it's children will be shanified.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
