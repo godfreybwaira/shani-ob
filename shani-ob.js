@@ -357,7 +357,7 @@
             fs() {
                 /*FullScreen*/
                 if (doc.fullscreenEnabled) {
-                    const req = this, cover = getCover(this, 35);
+                    const cover = getCover(this, 35);
                     doc.documentElement.requestFullscreen().then(function () {
                         doc.addEventListener('fullscreenchange', function () {
                             if (!doc.fullscreenElement) {

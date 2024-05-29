@@ -367,14 +367,13 @@ object. This middleware MUST return a value after finishing.
 **Description:**
 
 In Shani-ob, all requests send by the browser via AJAX, if you want to establish
-web socket connetion or server-sent-event use `shani-scheme` with values `ws` or `wss`
-and `sse` respectively where ws refers to _web socket_, wss is _secure web socket_
-and sse is _server sent event_. Make sure your server supports web socket or server
-sent event before using this feature.
+web socket connetion or server-sent-event use `shani-scheme` with values `ws` and
+`sse` respectively where ws refers to _web socket_ and sse is _server sent event_.
+Make sure your server supports web socket or server sent event before using this feature.
 
 **Syntax:**
 
-`shani-scheme="ws|wss|sse"`
+`shani-scheme="ws|sse"`
 
 **Example 1: (Using websocket)**
 
