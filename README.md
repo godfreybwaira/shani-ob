@@ -77,7 +77,7 @@ that can be used instead of `action` attribute include `href` or `value` attribu
 Now consider the following HTML code:
 
 ```html
-<div shani-watch="input#search" watch-on="change" shani-insert></div>
+<div shani-watch="input#search" watch-on="change" shani-insert="replace"></div>
 ```
 
 * The `div` element listens for `change` event on `input` element with id of `search`
@@ -110,8 +110,8 @@ element (replacing the existing content inside `div`).
 **Explanation:**
 
 When a link is clicked, the callback `r` is called, triggering GET request to URL
-specified by `href` attribute. The output is discarded. if you want the output then
-use `shani-insert` attribute.
+specified by `href` attribute. The output is discarded. if you want to insert the
+output to the DOM then use `shani-insert` attribute.
 
 
 ### 1.2 `shani-target`
@@ -173,7 +173,7 @@ header key and value are separated by `:` (colon).
 
 ```html
 <div shani-header="x-powered-by:shani-ob|accept:text/html" action="/users/3/activities"
-shani-on="load" shani-fn="r" shani-insert>Loading content, please wait...</div>
+shani-on="load" shani-fn="r" shani-insert="replace">Loading content, please wait...</div>
 ```
 
 **Explanation:**
@@ -234,59 +234,52 @@ then it will stop.
 
 **Description:**
 
-`shani-insert` is used to insert content fetched from server to html page, or current
-element having this attribute (if no value is given).
+`shani-insert` is used to insert content fetched from server to html page.
 
 **Syntax:**
 
 `shani-insert="before|after|remove|first|last|delete|replace"`
 
-**Example 1: (Replacing this element)**
-
-```html
-<a href="/users/0/data" shani-fn="r" shani-insert="">Replace Me</a>
-```
-
-**Example 2: (Insert before this element)**
+**Example 1: (Insert before this element)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-insert="before">Insert before Me</a>
 ```
 
-**Example 3: (Insert after this element)**
+**Example 2: (Insert after this element)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-insert="after">Insert after Me</a>
 ```
 
-**Example 4: (Insert as a first child of this element)**
+**Example 3: (Insert as a first child of this element)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-insert="first">Insert my first child</a>
 ```
 
-**Example 5: (Insert as a last child of this element)**
+**Example 4: (Insert as a last child of this element)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-insert="last">Insert my last child</a>
 ```
 
-**Example 6: (Overwrite this element's content)**
+**Example 5: (Overwrite this element's content)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-insert="replace">Overwrite my content</a>
 ```
 
-**Example 7: (Delete this element)**
+**Example 6: (Delete this element)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-insert="delete">Delete Me</a>
 ```
 
-**Example 8: (Insert after this element delete this element)**
+**Example 7: (Insert after this element delete this element)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-insert="after">Insert after Me, then delete me</a>
+<a href="/users/0/data" shani-fn="r" shani-insert="remove">Insert after Me, then delete me</a>
 ```
 
 **Explanation:**
