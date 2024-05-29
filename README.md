@@ -436,15 +436,15 @@ codes returned by server. It is used along side with `shani-watch` attribute.
 
 Some built-in events have direct meaning, such as:
 
-1. `ready`: fired when server return output or status code (mostly 200)
+1. `ready`: fired when server returns response
 2. `abort`: fired when connection to server is cancelled by client
 3. `error`: fired when client fails to connect to server
 4. `timeout`: fired when connection to server timed out
-5. `loadstart`: fired when client starts to send data to server
+5. `loadstart`: fired when client successfully establish connection to server
 6. `end': fired when server finished to send data to client
-7. `progress`: fired when server is processing the client request
+7. `progress`: fired when server is processing the client request (e.g: during file upload)
 8. `init`: fired when shani object is created
-9. `copy` fired when page content is copied
+9. `copy`: fired when page content is copied
 
 **Syntax:**
 
