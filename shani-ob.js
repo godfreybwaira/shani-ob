@@ -394,15 +394,15 @@
             if (req.scheme === 'sse') {
                 return ServerEvent(req);
             }
-            let emi = req.emitter;
-            if (emi.tagName === 'FORM') {
-                emi = req.emitter.querySelector('fieldset') || emi;
+            let re = req.emitter;
+            if (re.tagName === 'FORM') {
+                re = req.emitter.querySelector('fieldset') || re;
             }
-            emi.style.opacity = 0.5;
-            emi.setAttribute('disabled', 'disabled');
+            re.style.opacity = 0.5;
+            re.setAttribute('disabled', 'disabled');
             HTTP.send(req, req.method || method, function (obj) {
-                emi.removeAttribute('disabled');
-                emi.style.opacity = null;
+                re.removeAttribute('disabled');
+                re.style.opacity = null;
                 HTTP.fire('end', obj).rerun(req, submit);
             });
         };
