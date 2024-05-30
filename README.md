@@ -186,10 +186,10 @@ from "/users/3/activities" and insert into this `div`.
 **Description:**
 
 `shani-plugin` invoke user defined javascript function when an event is fired by
-shani object. User can listen to an event generated as `shani:pluginName` and perform
-the required action. If parameters were given, these parameters will be available on
-`event.detail` object. Use any separator for parameters except `|`, multiple plugins
-are separated by `|`.
+shani object. User can listen to an event generated as `shani:plugin:pluginName`
+and perform the required action. If parameters were given, these parameters will
+be available on `event.detail` object. Use any separator for parameters except `|`,
+multiple plugins are separated by `|`.
 
 **Syntax:**
 
@@ -198,7 +198,7 @@ are separated by `|`.
 **Example:**
 
 ```html
-<a href="/users/0/data" shani-plugin="404:toaster:color red" shani-fn="r"> Click me</a>
+<a href="/users/0/data" shani-plugin="404:toaster:color red" shani-fn="r">Click me</a>
 ```
 
 **Explanation:**
@@ -212,7 +212,9 @@ Note the space which was used to separate parameters.
 **Description:**
 
 `shani-poll` used to create polling via AJAX to a remote server. It can be used to
-run callback given the defined duration in seconds.
+run callback given the defined duration in seconds. If you won't specify `limit`
+then BUT you specify `steps` it will polling indefinitely. If you ommit `steps`
+BUT you specify `limit`, then `steps` will be one second.
 
 **Syntax:**
 
@@ -221,12 +223,12 @@ run callback given the defined duration in seconds.
 **Example:**
 
 ```html
-<a href="/users/0/data" shani-poll="2:3:5" shani-fn="r"> Click me</a>
+<a href="/users/0/data" shani-poll="2:3:5" shani-fn="r">Click me</a>
 ```
 **Explanation:**
 
 When a link is clicked, after two seconds the data will be fetched from "/users/0/data"
-then after every three seconds the same action will be performed until five times
+then after every three seconds the same action will be repeated for five times
 then it will stop.
 
 

@@ -188,9 +188,9 @@
                     for (const item of pair) {
                         if (Utils.hasEvent(obj, item[0])) {
                             const idx = item[1].indexOf(':');
-                            const evt = idx > -1 ? item[1].substring(0, idx) : item[1];
+                            const name = idx > -1 ? item[1].substring(0, idx) : item[1];
                             obj.params = idx > -1 ? item[1].substring(idx + 1) : null;
-                            Utils.dispatch('plugin:' + evt, obj);
+                            Utils.dispatch('plugin:' + name, obj);
                         }
                     }
                 }
