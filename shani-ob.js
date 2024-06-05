@@ -88,8 +88,8 @@
                 if (type && type !== 'form-data') {
                     headers.set('content-type', req.enctype.trim());
                 }
-                if (!headers.has('x-requested-with')) {
-                    headers.set('x-requested-with', 'ajax');
+                if (!headers.has('x-request-mode')) {
+                    headers.set('x-request-mode', 'async');
                 }
                 return headers;
             }
