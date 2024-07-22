@@ -55,6 +55,7 @@ Let us learn by examples. Look at the following `html` codes:
 ```html
 <input type="search" shani-fn="r" shani-on="keyup|change" id="search" method="GET" action="/users/search" />
 ```
+
 * The attribute `shani-on` accepts one or more valid javascript events separated
 by `|` (pipe). This tells the browser to register events `keyup` and `change`
 (in this case) on `input` element. If attribute `shani-on` was not specified, the default
@@ -114,7 +115,6 @@ When a link is clicked, the callback `r` is called, triggering GET request to UR
 specified by `href` attribute. The output is discarded. if you want to insert the
 output to the DOM then use `shani-insert` attribute.
 
-
 ### 1.2 `shani-target`
 
 **Description:**
@@ -136,23 +136,23 @@ callback action. This atribute is used only when `shani-fn="print|fs|copy"`.
 When a button is clicked, the callback `print` is called, triggering print dialog
 box to print the content of `div#page2`.
 
-
 **Example 2:**
 
 ```html
 <button shani-fn="copy" shani-target="div#page2">Copy Page 2</button>
 ```
+
 **Explanation:**
 
 When a button is clicked, the callback `copy` is called, copying the content of
 `div#page2` to clipboard.
-
 
 **Example 3:**
 
 ```html
 <button shani-fn="fs" shani-target="div#page2">View full Scrren</button>
 ```
+
 **Explanation:**
 
 When a button is clicked, the callback `fs` is called, triggering full screen
@@ -226,6 +226,7 @@ BUT you specify `limit`, then `steps` will be one second.
 ```html
 <a href="/users/0/data" shani-poll="2:3:5" shani-fn="r">Click me</a>
 ```
+
 **Explanation:**
 
 When a link is clicked, after two seconds the data will be fetched from "/users/0/data"
@@ -279,13 +280,11 @@ then it will stop.
 <a href="/users/0/data" shani-fn="r" shani-insert="delete">Delete Me</a>
 ```
 
-**Example 7: (Insert after this element delete this element)**
+**Example 7: (Insert after this element then delete this element)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-insert="remove">Insert after Me, then delete me</a>
 ```
-
-**Explanation:**
 
 ### 1.7 `shani-css`
 
@@ -358,6 +357,7 @@ format output or change it before inserting it to web page.
 ```html
 <a href="/users/0/data" shani-fn="r" shani-mw="200:Data.formatJSON|404:showNotFound">Click me</a>
 ```
+
 **Explanation:**
 
 When the status code `200` is returned, call user defined function (middleware)
@@ -387,7 +387,7 @@ feature.
 
 **Explanation:**
 
-When a link is clicked, establish a web socket connection to `ws://[yourhost]/users/0/data`.
+Establish a web socket connection to `ws://[yourhost]/users/0/data` when a link is clicked.
 
 **Example 2: (Using server-sent-event)**
 
