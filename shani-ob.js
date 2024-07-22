@@ -97,6 +97,7 @@
                 if (req.log === 'true') {
                     console.log(data);
                 }
+                return this;
             }
         };
     })();
@@ -651,7 +652,7 @@
         return{
             send(req, method, startCb, endCb) {
                 const payload = createPayload(req, method), xhr = new XMLHttpRequest();
-                startCb(payload.data);
+                startCb(payload);
                 xhr.open(method, payload.url, true);
                 for (const h of payload.headers) {
                     xhr.setRequestHeader(h[0], h[1]);
@@ -732,11 +733,13 @@
                 if (e === 'success') {
                     HTML.handleData(obj);
                 }
-                Utils.dispatch(e, obj);
+                Utils.dispatch(e, obj).logger(req, obj);
                 HTML.handleCSS(obj).handlePlugin(obj);
             };
             on('open', function (e) {
-                socket.send(createPayload(req));
+                const payload = createPayload(req);
+                socket.send(payload);
+                Utils.logger(req, payload);
                 cb(e, 'ready');
             })('message', function (e) {
                 cb(e, 'success');
@@ -775,7 +778,7 @@
                 if (e !== 'error' && e !== 'end') {
                     HTML.handleData(obj);
                 }
-                Utils.dispatch(e, obj);
+                Utils.dispatch(e, obj).logger(req, obj);
                 HTML.handleCSS(obj).handlePlugin(obj);
             };
             const evt = Utils.explode(req.emitter.getAttribute('shani-on') || 'message');
