@@ -92,6 +92,11 @@
                     headers.set('x-request-mode', 'async');
                 }
                 return headers;
+            },
+            logger(req, data) {
+                if (req.log === 'true') {
+                    console.log(data);
+                }
             }
         };
     })();
@@ -320,7 +325,7 @@
         };
         return {
             HTML_ATTR: ['enctype', 'method'],
-            SHANI_ATTR: ['mw', 'target', 'header', 'plugin', 'poll', 'insert', 'css', 'fn', 'scheme'],
+            SHANI_ATTR: ['mw', 'target', 'header', 'plugin', 'poll', 'insert', 'css', 'fn', 'scheme', 'log'],
             init(req, node) {
                 req.url = node.getAttribute('href') || node.getAttribute('action') || node.value;
                 setAttr(req, node, this.SHANI_ATTR, 'shani-');
@@ -394,15 +399,18 @@
             if (req.scheme === 'sse') {
                 return ServerEvent(req);
             }
-            let re = req.emitter;
-            if (re.tagName === 'FORM') {
-                re = req.emitter.querySelector('fieldset') || re;
+            let rem = req.emitter;
+            if (rem.tagName === 'FORM') {
+                rem = rem.querySelector('fieldset') || rem;
             }
-            re.style.opacity = 0.5;
-            re.setAttribute('disabled', 'disabled');
-            HTTP.send(req, req.method || method, function (obj) {
-                re.removeAttribute('disabled');
-                re.style.opacity = null;
+            rem.style.opacity = 0.5;
+            HTTP.send(req, req.method || method, function (data) {
+                Utils.logger(req, data);
+                rem.setAttribute('disabled', 'disabled');
+            }, function (obj) {
+                Utils.logger(obj.req, obj.resp);
+                rem.removeAttribute('disabled');
+                rem.style.opacity = null;
                 HTTP.fire('end', obj).rerun(req, submit);
             });
         };
@@ -641,13 +649,14 @@
             return payload;
         };
         return{
-            send(req, method, cb) {
+            send(req, method, startCb, endCb) {
                 const payload = createPayload(req, method), xhr = new XMLHttpRequest();
+                startCb(payload.data);
                 xhr.open(method, payload.url, true);
                 for (const h of payload.headers) {
                     xhr.setRequestHeader(h[0], h[1]);
                 }
-                loaders(req, xhr, cb);
+                loaders(req, xhr, endCb);
                 xhr.withCredentials = true;
                 xhr.send(payload.data);
             }, statusText(code) {

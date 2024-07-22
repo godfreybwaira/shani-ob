@@ -41,6 +41,7 @@ using the idea of HATEOAS (Hypermedia as the engine of application state).
 10. `shani-watch`
 11. `watch-on`
 12. `shani-on`
+13. `shani-log`
 
 Other supported HTML attributes are:
 
@@ -486,6 +487,28 @@ attribute the defaults will me assumed.
 
 This `div.container` watches for an element with id `profile` when it is clicked.
 If you ommit `watch-on` attribute the default value will be `watch-on="init"`.
+
+### 1.12 `shani-log`
+
+**Description:**
+
+`shani-log` attribute is used to display on console the request and response data
+as well as response headers coming from server. This attribute is handy only for
+debugging purpose.
+
+**Syntax:**
+
+`shani-log="[true|false]"`
+
+**Example:**
+
+```html
+<form method="POST" enctype="application/json" shani-log="true" shani-fn="w" action="/handler/form"></form>
+```
+
+**Explanation:**
+
+When set to true, the raw request data will be printed on console.
 
 ## Tips
 
