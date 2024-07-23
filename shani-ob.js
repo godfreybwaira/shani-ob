@@ -112,26 +112,16 @@
                 node.classList[args[0]](args[i]);
             }
         };
-        const placeNode = function (target, data, mode, isHTML) {
+        const placeNode = function (target, data, mode, plainText) {
             if (mode === 'delete') {
                 return target.remove();
             }
-            const fn = 'insertAdjacent' + (isHTML ? 'HTML' : 'Text');
+            const fn = 'insertAdjacent' + (plainText ? 'Text' : 'HTML');
             if (mode === 'remove') {
                 target[fn]('afterend', data);
                 return target.remove();
             }
             target[fn](mode, data);
-        };
-        const setHTML = function (node, data, mode, type) {
-            if (mode !== 'replace') {
-                return true;
-            }
-            if (type === 'html') {
-                node.innerHTML = data;
-            } else {
-                node.textContent = data;
-            }
         };
         const setInput = function (node, data, mode) {
             if (mode === 'first') {
@@ -142,6 +132,22 @@
                 node.value = data;
             } else {
                 return true;
+            }
+        };
+        const insertData = function (obj, data, mode) {
+            const hd = obj.resp.headers, node = obj.req.emitter;
+            const type = hd ? Utils.getType(hd.get('content-type')) : null;
+            const plainText = node.getAttribute('watch-xss') === 'true' || type !== 'html';
+            if (Utils.isInput(node)) {
+                if (setInput(node, data, mode)) {
+                    placeNode(node, data, mode, plainText);
+                }
+            } else if (mode !== 'replace') {
+                placeNode(node, data, mode, plainText);
+            } else if (plainText) {
+                node.textContent = data;
+            } else {
+                node.innerHTML = data;
             }
         };
         const intercept = function (obj) {
@@ -170,24 +176,16 @@
                 }
                 return this;
             }, handleData(obj) {
-                const data = intercept(obj), node = obj.req.emitter;
-                if (!data || data === '') {
-                    return;
-                }
+                const data = intercept(obj);
                 const mode = Utils.object({
                     before: 'beforebegin', after: 'afterend', remove: 'remove',
                     first: 'afterbegin', last: 'beforeend', delete: 'delete',
                     replace: 'replace'
                 })[obj.req.insert];
-                if (mode) {
-                    const hd = obj.resp.headers;
-                    const type = hd ? Utils.getType(hd.get('content-type')) : null;
-                    const result = Utils.isInput(node) ? setInput(node, data, mode) : setHTML(node, data, mode, type);
-                    if (result) {
-                        placeNode(node, data, mode, type === 'html');
-                    }
+                if (!data || data === '' || !mode) {
+                    return;
                 }
-                return this;
+                insertData(obj, data, mode);
             }, handlePlugin(obj) {
                 if (obj.req.plugin) {
                     const pair = Utils.explode(obj.req.plugin);

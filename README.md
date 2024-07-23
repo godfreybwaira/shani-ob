@@ -42,6 +42,7 @@ using the idea of HATEOAS (Hypermedia as the engine of application state).
 11. `watch-on`
 12. `shani-on`
 13. `shani-log`
+14. `watch-xss`
 
 Other supported HTML attributes are:
 
@@ -300,7 +301,7 @@ or _status code_ returned by server. You can use multiple callbacks separated by
 **Example 1: (Adding classes to element)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-css="404:add:danger:bold">Click me</a>
+<a href="/users/3" shani-fn="r" shani-css="404:add:danger:bold">Click me</a>
 ```
 
 **Explanation:**
@@ -311,7 +312,7 @@ to element `a`
 **Example 2: (Removing classes from element)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-css="200:remove:danger:bold">Click me</a>
+<a href="/users" shani-fn="r" shani-css="200:remove:danger:bold">Click me</a>
 ```
 
 **Explanation:**
@@ -322,23 +323,23 @@ from element `a`
 **Example 3: (Replace classes from element)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-css="success:replace:danger:fine">Click me</a>
+<a href="/users" shani-fn="r" shani-css="success:replace:danger:alert">Click me</a>
 ```
 
 **Explanation:**
 
-When event `success` is fired by an element, replace it's class `danger` with `fine` class.
+When event `success` is fired by an element, replace it's class `danger` with `alert` class.
 
 **Example 4: (Toggle classes on element)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-css="400:toggle:danger:fine">Click me</a>
+<a href="/users/4" shani-fn="r" shani-css="400:toggle:danger:alert">Click me</a>
 ```
 
 **Explanation:**
 
-When status code `400` is returned by server, toggle class `danger` and `fine` of
-and element `a`.
+When status code `400` is returned by server, toggle class `danger` and `alert` of
+and element `a`
 
 ### 1.8 `shani-mw`
 
@@ -355,7 +356,7 @@ format output or change it before inserting it to web page.
 **Example:**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-mw="200:Data.formatJSON|404:showNotFound">Click me</a>
+<a href="/users" shani-fn="r" shani-mw="200:Data.formatJSON|404:showNotFound">Click me</a>
 ```
 
 **Explanation:**
@@ -363,16 +364,16 @@ format output or change it before inserting it to web page.
 When the status code `200` is returned, call user defined function (middleware)
 named `Data.formatJSON`, but if the status code is `404` call user defined
 function `showNotFound`. The `this` object inside those callbacks will be shani
-object. This middleware MUST return a value after finishing.
+object. This middleware MUST return a value which will be inserted into DOM.
 
 ### 1.9 `shani-scheme`
 
 **Description:**
 
 In Shani-ob, all requests send by the browser via AJAX, if you want to establish
-web socket connetion or server-sent-event use `shani-scheme` with values `ws` and
-`sse` respectively where ws refers to _web socket_ and sse is _server sent event_.
-Make sure your server supports web socket or server sent event before using this
+web socket connection or server-sent-event ,use `shani-scheme` with values `ws` and
+`sse` respectively where `ws` refers to _web socket_ and `sse` is _server sent event_.
+Make sure your web server supports web socket or server sent event before using this
 feature.
 
 **Syntax:**
@@ -510,6 +511,26 @@ debugging purpose.
 
 When set to true, the raw request data will be printed on console.
 
+### 1.12 `watch-xss`
+
+**Description:**
+
+`watch-xss` attribute is used to prevent response content from being injected into the DOM as HTML markups. This is important to prevent XSS attack. This attribute is only available with watcher elements (Elements with `shani-watch` attributes).
+
+**Syntax:**
+
+`watch-xss="[true|false]"`
+
+**Example:**
+
+```html
+<div shani-watch="#form" watch-on="200" watch-xss="true">Waiting for server response</div>
+```
+
+**Explanation:**
+
+When set to true, the server response will be inserted into the `div` as plain text, otherwise the default behavior is assumed. The default behavior is to check for HTTP `content-type` header and to decide how to handle contents from server. If the `content-type` is `html` then HTML content will be injected as HTML markup, otherwise content will be injected as plain texts.
+
 ## Tips
 
 * To disable any element use `disable` attribute of the HTML
@@ -518,16 +539,16 @@ When set to true, the raw request data will be printed on console.
 ## Sending JSON, XML, CSV or YAML
 
 You can directly send JSON, XML, CSV or YAML to server using `shani-ob`.
-This can be achieved through enctype attribute or `shani-header="content-type:[your_type]"`
-where [your_type] can be any of application/json, text/yaml, application/xml or
-text/csv depending what type your server supports. Look at the following example:
+This can be achieved through enctype attribute or `shani-header="content-type:[your/type]"`
+where [your/type] can be any of `application/json`, `text/yaml`, `application/xml` or
+`text/csv` depending what type your server supports. Look at the following example:
 
 ```html
 <form method="POST" enctype="application/json" shani-on="submit" shani-fn="w" action="/handler/form"></form>
 ```
 **Explanation:**
 
-The form above will be sent to "/handler/form" using POST HTTP method as "application/json".
+The form above will be sent to `/handler/form` using POST HTTP method as `application/json`.
 Mind you that this current version of `shani-ob` does not support sending file as JSON.
 
 ## Shanifying your HTML
