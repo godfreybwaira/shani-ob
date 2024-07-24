@@ -681,7 +681,7 @@
                             req[attr] = h[1];
                         }
                     }
-                    req.fn = req.fn || 'r';
+                    req.fn ||= 'r';
                     return req[req.fn]();
                 }
                 if (req.url === '#') {
