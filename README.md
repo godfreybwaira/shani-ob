@@ -187,36 +187,37 @@ from "/users/3/activities" and insert into this `div`.
 
 **Description:**
 
-`shani-plugin` invoke user defined javascript function when an event is fired by
-shani object. User can listen to an event generated as `shani:plugin:pluginName`
-and perform the required action. If parameters were given, these parameters will
-be available on `event.detail` object. Use any separator for parameters except `|`,
-multiple plugins are separated by `|`.
+`shani-plugin` invoke user defined JavaScript function when an event is fired by
+Shani object. User can listen to an event generated via `shani:plugin:pluginName` using `document` object and perform the required action. If parameters were given, these parameters will be available on `event.detail` object. Use a single space as a parameter separator, multiple plugins are separated by `|`.
 
 **Syntax:**
 
-`shani-plugin="event_or_statusCode:pluginName[:param1[:param2]][|event_or_statusCode:pluginName[:param1[:param2]]]"`
+`shani-plugin="event_or_statusCode:pluginName[:params_list][|event_or_statusCode:pluginName[:params_list]]"`
 
 **Example:**
 
 ```html
-<a href="/users/0/data" shani-plugin="404:toaster:color red" shani-fn="r">Click me</a>
+<a href="/users" shani-plugin="404:toaster:color red" shani-fn="r">View All</a>
 ```
 
 **Explanation:**
 
 When a link is clicked and the status code `404` is returned, fire the event named
-`shani:toaster`. The event object will contain detail object with object `{params:"color red"}`.
-Note the space which was used to separate parameters.
+`shani:plugin:toaster`. The event object will contain `detail` object with object `{event: "plugin:toaster", params: "color red"}`. Note the space which was used to separate parameters. You can listen for this event using `document` object and act accordingly.
+
+*Example:*
+```js
+document.addEventListener('shani:plugin:toaster', function(e){
+	console.log(e.detail);
+});
+```
+
 
 ### 1.5 `shani-poll`
 
 **Description:**
 
-`shani-poll` used to create polling via AJAX to a remote server. It can be used to
-run callback given the defined duration in seconds. If you won't specify `limit`
-then BUT you specify `steps` it will polling indefinitely. If you ommit `steps`
-BUT you specify `limit`, then `steps` will be one second.
+`shani-poll` used to create polling via AJAX to a remote server. It can be used to run callback given the defined duration in seconds. If you set `start` and `steps` but without `limit`, it will poll indefinitely.
 
 **Syntax:**
 
@@ -260,19 +261,19 @@ then it will stop.
 **Example 3: (Insert as a first child of this element)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-insert="first">Insert my first child</a>
+<a href="/users/1" shani-fn="r" shani-insert="first">Insert before my first child</a>
 ```
 
 **Example 4: (Insert as a last child of this element)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-insert="last">Insert my last child</a>
+<a href="/users" shani-fn="r" shani-insert="last">Insert after my last child</a>
 ```
 
 **Example 5: (Replace this element's content)**
 
 ```html
-<a href="/users/0/data" shani-fn="r" shani-insert="replace">Replace my content</a>
+<a href="/users/3" shani-fn="r" shani-insert="replace">Replace my content</a>
 ```
 
 **Example 6: (Delete this element)**
@@ -291,63 +292,62 @@ then it will stop.
 
 **Description:**
 
-`shani-css` is used to manipulate css classes based on given _event_ fired by element
-or _status code_ returned by server. You can use multiple callbacks separated by `|`
+`shani-css` is used to manipulate CSS classes based on given event fired by an element
+or a status code returned by server. You can use multiple callbacks separated by `|`
 
 **Syntax:**
 
-`shani-css="event_or_statusCode:[add|remove|replace|toggle]:[class1[:class2]]"`
+`shani-css="event_or_statusCode:[add|remove|replace|toggle]:[class1[ class2]]"`
 
-**Example 1: (Adding classes to element)**
+**Example 1: (Adding classes to an element)**
 
 ```html
-<a href="/users/3" shani-fn="r" shani-css="404:add:danger:bold">Click me</a>
+<a href="/users/3" shani-fn="r" shani-css="404:add:danger bold">Click me</a>
 ```
 
 **Explanation:**
 
-When status code `404` is returned by server, add css classes `danger` and `bold`
+When status code `404` is returned by server, add CSS classes `danger` and `bold`
 to element `a`
 
-**Example 2: (Removing classes from element)**
+**Example 2: (Removing classes from an element)**
 
 ```html
-<a href="/users" shani-fn="r" shani-css="200:remove:danger:bold">Click me</a>
+<a href="/users" shani-fn="r" shani-css="200:remove:danger bold">Click me</a>
 ```
 
 **Explanation:**
 
-When status code `200` is returned by server, remove css classes `danger` and `bold`
+When status code `200` is returned by server, remove CSS `danger` and `bold` classes
 from element `a`
 
 **Example 3: (Replace classes from element)**
 
 ```html
-<a href="/users" shani-fn="r" shani-css="success:replace:danger:alert">Click me</a>
+<a href="/users" shani-fn="r" shani-css="success:replace:danger alert">Click me</a>
 ```
 
 **Explanation:**
 
-When event `success` is fired by an element, replace it's class `danger` with `alert` class.
+When event `success` is fired by an element, replace it's `danger` class with `alert` class.
 
 **Example 4: (Toggle classes on element)**
 
 ```html
-<a href="/users/4" shani-fn="r" shani-css="400:toggle:danger:alert">Click me</a>
+<a href="/users/4" shani-fn="r" shani-css="400:toggle:danger alert">Click me</a>
 ```
 
 **Explanation:**
 
-When status code `400` is returned by server, toggle class `danger` and `alert` of
-and element `a`
+When status code `400` is returned, toggle  `danger` and `alert` classes of element `a`
 
 ### 1.8 `shani-mw`
 
 **Description:**
 
 If you want to apply your own function on output returned by server before rendering
-to a web page, you should `shani-mw` (shani middleware) attribute. It is used to
-format output or change it before inserting it to web page.
+to a web page, you should `shani-mw` (Shani middleware) attribute. It is used to
+mutate the output before rendering to the DOM.
 
 **Syntax:**
 
@@ -356,15 +356,14 @@ format output or change it before inserting it to web page.
 **Example:**
 
 ```html
-<a href="/users" shani-fn="r" shani-mw="200:Data.formatJSON|404:showNotFound">Click me</a>
+<a shani-mw="200:Data.createTable|404:showNotFound" shani-fn="r" href="/users">Click me</a>
 ```
 
 **Explanation:**
 
 When the status code `200` is returned, call user defined function (middleware)
-named `Data.formatJSON`, but if the status code is `404` call user defined
-function `showNotFound`. The `this` object inside those callbacks will be shani
-object. This middleware MUST return a value which will be inserted into DOM.
+named `Data.createTable`, but if the status code is `404` call user defined
+function `showNotFound`. Middleware callbacks accept a response object as first parameter. This middleware MUST return a value which will be inserted into DOM.
 
 ### 1.9 `shani-scheme`
 

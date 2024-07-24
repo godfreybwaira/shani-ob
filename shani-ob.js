@@ -27,19 +27,19 @@
             }
         };
         const mo = function (changes) {
-            for (const change of changes) {
+            for (let change of changes) {
                 let nodes = change.addedNodes;
-                for (const node of nodes) {
+                for (let node of nodes) {
                     addNode(node);
                 }
                 nodes = change.removedNodes;
-                for (const node of nodes) {
+                for (let node of nodes) {
                     Watcher.OBSERVERS.delete(node);
                 }
             }
         };
         const demand = function (changes) {
-            for (const change of changes) {
+            for (let change of changes) {
                 if (change.isIntersecting) {
                     change.target.dispatchEvent(new Event('demand'));
                     this.disconnect();
@@ -57,7 +57,10 @@
     const Utils = (function () {
         return{
             dispatch(e, obj) {
-                obj.event = e;
+                if (!obj.event) {
+                    obj.event = new Set();
+                }
+                obj.event.add(e);
                 doc.dispatchEvent(new CustomEvent('shani:' + e, {detail: Utils.object(obj)}));
                 return this;
             },
@@ -67,11 +70,15 @@
                 return header ? header.substring(header.indexOf('/') + 1).split(';')[0] : null;
             }, isInput(node) {
                 return ['INPUT', 'TEXTAREA'].indexOf(node.tagName) > -1;
-            }, hasEvent(obj, e) {
-                if (e instanceof Map) {
-                    return e.has(obj.event) || e.has('*');
+            }, hasEvent(obj, evt) {
+                if (evt instanceof Map) {
+                    for (let e of obj.event) {
+                        if (evt.has(e) || evt.has('*')) {
+                            return true;
+                        }
+                    }
                 }
-                return e === obj.event || e === '*';
+                return obj.event.has(evt) || evt === '*';
             }, explode(str, sep) {
                 const map = new Map();
                 if (str) {
@@ -82,6 +89,11 @@
                     }
                 }
                 return map;
+            }, functionParams(items) {
+                const idx = items.indexOf(':'), fp = Utils.object();
+                fp.name = idx > -1 ? items.substring(0, idx) : items;
+                fp.params = idx > -1 ? items.substring(idx + 1) : '';
+                return fp;
             },
             getReqHeaders(req) {
                 const type = Utils.getType(req.enctype), headers = Utils.explode(req.header);
@@ -102,14 +114,14 @@
         };
     })();
     const HTML = (function () {
-        const classList = function (node, params) {
-            //toggle:c1:c2
-            const args = params.split(':');
-            if (args[0] === 'replace') {
-                return node.classList.replace(args[1], args[2]);
+        const mutateCSS = function (node, params) {
+            const fp = Utils.functionParams(params);
+            const args = fp.params.split(' ');
+            if (fp.name === 'replace') {
+                return node.classList.replace(args[0], args[1]);
             }
-            for (let i = 1; i < args.length; i++) {
-                node.classList[args[0]](args[i]);
+            for (let arg of args) {
+                node.classList[fp.name](arg);
             }
         };
         const placeNode = function (target, data, mode, plainText) {
@@ -134,8 +146,8 @@
                 return true;
             }
         };
-        const insertData = function (obj, data, mode) {
-            const hd = obj.resp.headers, node = obj.req.emitter;
+        const insertData = function (obj, mode) {
+            const hd = obj.resp.headers, node = obj.req.emitter, data = obj.resp.data;
             const type = hd ? Utils.getType(hd.get('content-type')) : null;
             const plainText = node.getAttribute('watch-xss') === 'true' || type !== 'html';
             if (Utils.isInput(node)) {
@@ -150,51 +162,35 @@
                 node.innerHTML = data;
             }
         };
-        const intercept = function (obj) {
-            const middlewares = Utils.explode(obj.req.mw);
-            for (const mw of middlewares) {
-                if (Utils.hasEvent(obj, mw[0])) {
-                    const cbs = mw[1].split(':');
-                    for (const cb of cbs) {
-                        obj.resp.data = Utils.object(new Function('return ' + cb)().call(obj.resp));
-                    }
-                    break;
-                }
-            }
-            return obj.resp.data;
-        };
         return {
             handleCSS(obj) {
                 if (obj.req.css) {
                     const pair = Utils.explode(obj.req.css);
                     for (let item of pair) {
                         if (Utils.hasEvent(obj, item[0])) {
-                            //200:toggle:c1:c2
-                            classList(obj.req.emitter, item[1]);
+                            mutateCSS(obj.req.emitter, item[1]);
                         }
                     }
                 }
                 return this;
             }, handleData(obj) {
-                const data = intercept(obj);
                 const mode = Utils.object({
                     before: 'beforebegin', after: 'afterend', remove: 'remove',
                     first: 'afterbegin', last: 'beforeend', delete: 'delete',
                     replace: 'replace'
                 })[obj.req.insert];
-                if (!data || data === '' || !mode) {
+                if (!obj.resp.data || obj.resp.data === '' || !mode) {
                     return;
                 }
-                insertData(obj, data, mode);
+                insertData(obj, mode);
             }, handlePlugin(obj) {
                 if (obj.req.plugin) {
                     const pair = Utils.explode(obj.req.plugin);
-                    for (const item of pair) {
+                    for (let item of pair) {
                         if (Utils.hasEvent(obj, item[0])) {
-                            const idx = item[1].indexOf(':');
-                            const name = idx > -1 ? item[1].substring(0, idx) : item[1];
-                            obj.params = idx > -1 ? item[1].substring(idx + 1) : null;
-                            Utils.dispatch('plugin:' + name, obj);
+                            const fp = Utils.functionParams(item[1]);
+                            obj.params = fp.params;
+                            Utils.dispatch('plugin:' + fp.name, obj);
                         }
                     }
                 }
@@ -212,7 +208,7 @@
             }
         };
         const listen = function (e) {
-            for (const node of Watcher.OBSERVERS) {
+            for (let node of Watcher.OBSERVERS) {
                 if (Utils.hasEvent(e.detail, node[1])) {
                     notify(node[0], e.detail);
                 }
@@ -273,7 +269,7 @@
                 let evt = node.getAttribute('shani-on');
                 if (evt) {
                     evt = Utils.explode(evt);
-                    for (const e of evt) {
+                    for (let e of evt) {
                         if (e[0] === 'load') {
                             node.addEventListener(e[0], listener);
                             node.dispatchEvent(new Event(e[0]));
@@ -308,7 +304,7 @@
                     nodes = doc.querySelectorAll(nodes);
                 }
                 if (!self) {
-                    for (const node of nodes) {
+                    for (let node of nodes) {
                         for (let key in attrs) {
                             node.setAttribute(key, attrs[key]);
                         }
@@ -318,7 +314,7 @@
             };
         }
         const setAttr = function (req, node, attrs, prefix) {
-            for (const a of attrs) {
+            for (let a of attrs) {
                 req[a] = node.getAttribute(prefix + a);
             }
         };
@@ -462,7 +458,7 @@
         return {
             map2json(map) {
                 const obj = Utils.object();
-                for (const m of map) {
+                for (let m of map) {
                     obj[m[0]] = m[1];
                 }
                 return obj;
@@ -483,7 +479,7 @@
             },
             form2json(fd) {
                 const data = Utils.object(), keys = [];
-                for (const input of fd) {
+                for (let input of fd) {
                     if (keys.indexOf(input[0]) > -1) {
                         continue;
                     }
@@ -550,7 +546,7 @@
             urlencoded(fd) {
                 const keys = [];
                 let output = '';
-                for (const input of fd) {
+                for (let input of fd) {
                     if (keys.indexOf(input[0]) > -1) {
                         continue;
                     }
@@ -652,7 +648,7 @@
                 const payload = createPayload(req, method), xhr = new XMLHttpRequest();
                 startCb(payload);
                 xhr.open(method, payload.url, true);
-                for (const h of payload.headers) {
+                for (let h of payload.headers) {
                     xhr.setRequestHeader(h[0], h[1]);
                 }
                 loaders(req, xhr, endCb);
@@ -675,7 +671,7 @@
             }, redirect(req, headers) {
                 req.url = headers.get('location');
                 if (headers.get('x-ajax')) {//ajax redirection
-                    for (const h of headers) {
+                    for (let h of headers) {
                         if (Features.HTML_ATTR.indexOf(h[0]) > -1) {
                             req[h[0]] = h[1];
                             continue;
@@ -704,16 +700,17 @@
                 req.timer.steps = Number(poll[1] || -1) * 1000;
                 setTimeout(cb, Number(poll[0] || 0) * 1000, req, HTTP.fire);
             }, fire(e, obj, code) {
+                code ||= obj.resp.code;
                 const status = HTTP.statusText(code);
+                Utils.dispatch(e, obj);
+                if (code) {
+                    Utils.dispatch(code + '', obj).dispatch(status, obj);
+                }
                 if (e === 'ready') {
                     if (status === 'redirect') {
                         return HTTP.redirect(obj.req, obj.resp.headers);
                     }
                     HTML.handleData(obj);
-                }
-                Utils.dispatch(e, obj);
-                if (code) {
-                    Utils.dispatch(code + '', obj).dispatch(status, obj);
                 }
                 HTML.handleCSS(obj).handlePlugin(obj);
                 return this;
@@ -728,10 +725,10 @@
             };
             const cb = function (ev, e) {
                 const obj = Utils.object({req, resp: {data: ev.data || null, headers: null}});
+                Utils.dispatch(e, obj).logger(req, obj);
                 if (e === 'success') {
                     HTML.handleData(obj);
                 }
-                Utils.dispatch(e, obj).logger(req, obj);
                 HTML.handleCSS(obj).handlePlugin(obj);
             };
             on('open', function (e) {
@@ -773,10 +770,10 @@
                 const obj = Utils.object({
                     req, resp: {data: ev.data || null, headers: new Map().set('content-type', 'text/html')}
                 });
+                Utils.dispatch(e, obj).logger(req, obj);
                 if (e !== 'error' && e !== 'end') {
                     HTML.handleData(obj);
                 }
-                Utils.dispatch(e, obj).logger(req, obj);
                 HTML.handleCSS(obj).handlePlugin(obj);
             };
             const evt = Utils.explode(req.emitter.getAttribute('shani-on') || 'message');
