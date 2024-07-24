@@ -56,25 +56,15 @@ Let us learn by examples. Look at the following `html` codes:
 <input type="search" shani-fn="r" shani-on="keyup|change" id="search" method="GET" action="/users/search" />
 ```
 
-* The attribute `shani-on` accepts one or more valid javascript events separated
-by `|` (pipe). This tells the browser to register events `keyup` and `change`
-(in this case) on `input` element. If attribute `shani-on` was not specified, the default
-`shani-on="change"` will be used (for all `input`, `select` and `textarea` elements).
+* The attribute `shani-on` accepts one or more valid JavaScript events separated by `|` (pipe). This tells the browser to register events `keyup` and `change` (in this case) on `input` element. If attribute `shani-on` was not specified, the default `shani-on="change"` will be used (for all `input`, `select` and `textarea` elements).
 
-* Attribute `shani-fn` has the value `r` which tells the browser to read data
-from server using `GET` method. Other values for `shani-fn` includes `w`, `copy`,
-`print` and `fs`. The descriptions about these values will be given later.
+* Attribute `shani-fn` has the value `r` which tells the browser to read data from server using `GET` method. Other values for `shani-fn` includes `w`, `copy`, `print` and `fs`. The descriptions about these values will be given later.
 
-* The main difference between `r` (read) and `w` (write) callbacks is that `r` uses
-'GET' as default HTTP method while `w` uses 'POST' as default HTTP method. However,
-you can override HTTP method using `method` attribute on both callbacks.
+* The main difference between `r` (read) and `w` (write) callbacks is that `r` uses 'GET' as default HTTP method while `w` uses 'POST' as default HTTP method. However, you can override HTTP method using `method` attribute on both callbacks.
 
-* The `method` attribute tells the browser to use HTTP `GET` request method to fetch data
-using AJAX. You can use any request method including your custom request methods
-supported by your server.
+* The `method` attribute tells the browser to use HTTP `GET` request method to fetch data using AJAX. You can use any request method including your custom request methods supported by your server.
 
-* The `action` attribute specifies the URL that will handle the request. Other attributes
-that can be used instead of `action` attribute include `href` or `value` attribute.
+* The `action` attribute specifies the URL that will handle the request. Other attributes that can be used instead of `action` attribute include `href` or `value` attribute.
 
 Now consider the following HTML code:
 
@@ -82,9 +72,7 @@ Now consider the following HTML code:
 <div shani-watch="input#search" watch-on="change" shani-insert="replace"></div>
 ```
 
-* The `div` element listens for `change` event on `input` element with id of `search`
-so that whenever the result is returned by the browser is inserted to the `div`
-element (replacing the existing content inside `div`).
+* The `div` element listens for `change` event on `input` element with id of `search` so that whenever the result is returned by the browser is inserted to the `div` element (replacing the existing content inside `div`).
 
 ## 1. Attributes
 ### 1.1 `shani-fn`
@@ -111,16 +99,13 @@ element (replacing the existing content inside `div`).
 
 **Explanation:**
 
-When a link is clicked, the callback `r` is called, triggering GET request to URL
-specified by `href` attribute. The output is discarded. if you want to insert the
-output to the DOM then use `shani-insert` attribute.
+When a link is clicked, the callback `r` is called, triggering GET request to URL specified by `href` attribute. The output is discarded. if you want to insert the output to the DOM then use `shani-insert` attribute.
 
 ### 1.2 `shani-target`
 
 **Description:**
 
-`shani-target` is used to define a target element which will be affected by the
-callback action. This atribute is used only when `shani-fn="print|fs|copy"`.
+`shani-target` is used to define a target element which will be affected by the callback action. This attribute is used only when `shani-fn="print|fs|copy"`.
 
 **Syntax:**
 
@@ -133,8 +118,7 @@ callback action. This atribute is used only when `shani-fn="print|fs|copy"`.
 ```
 **Explanation:**
 
-When a button is clicked, the callback `print` is called, triggering print dialog
-box to print the content of `div#page2`.
+When a button is clicked, the callback `print` is called, triggering print dialog box to print the content of `div#page2`.
 
 **Example 2:**
 
@@ -144,8 +128,7 @@ box to print the content of `div#page2`.
 
 **Explanation:**
 
-When a button is clicked, the callback `copy` is called, copying the content of
-`div#page2` to clipboard.
+When a button is clicked, the callback `copy` is called, copying the content of `div#page2` to clipboard.
 
 **Example 3:**
 
@@ -155,16 +138,14 @@ When a button is clicked, the callback `copy` is called, copying the content of
 
 **Explanation:**
 
-When a button is clicked, the callback `fs` is called, triggering full screen
-showing only the content of `div#page2`.
+When a button is clicked, the callback `fs` is called, triggering full screen showing only the content of `div#page2`.
 
 ### 1.3 `shani-header`
 
 **Description:**
 
 `shani-header` sends one or more HTTP headers to server. Any HTTP header including
-custom headers can be send. Multiple headers are separated by `|` (pipe) while
-header key and value are separated by `:` (colon).
+custom headers can be send. Multiple headers are separated by `|` (pipe) while header key and value are separated by `:` (colon).
 
 **Syntax:**
 
@@ -173,21 +154,18 @@ header key and value are separated by `:` (colon).
 **Example:**
 
 ```html
-<div shani-header="x-powered-by:shani-ob|accept:text/html" action="/users/3/activities"
-shani-on="load" shani-fn="r" shani-insert="replace">Loading content, please wait...</div>
+<div shani-header="x-powered-by:shani-ob|accept:text/html" action="/users/3" shani-on="load" shani-fn="r" shani-insert="replace">Loading content, please wait...</div>
 ```
 
 **Explanation:**
 
-when page loaded send the headers `x-powered-by` and `accept` then get content
-from "/users/3/activities" and insert into this `div`.
+when page loaded send the headers `x-powered-by` and `accept` then get content from "/users/3" and insert into this `div`.
 
 ### 1.4 `shani-plugin`
 
 **Description:**
 
-`shani-plugin` invoke user defined JavaScript function when an event is fired by
-Shani object. User can listen to an event generated via `shani:plugin:pluginName` using `document` object and perform the required action. If parameters were given, these parameters will be available on `event.detail` object. Use a single space as a parameter separator, multiple plugins are separated by `|`.
+`shani-plugin` invoke user defined JavaScript function when an event is fired by Shani object. User can listen to an event generated via `shani:plugin:pluginName` using `document` object and perform the required action. If parameters were given, these parameters will be available on `event.detail` object. Use a single space as a parameter separator, multiple plugins are separated by `|`.
 
 **Syntax:**
 
@@ -230,10 +208,7 @@ document.addEventListener('shani:plugin:toaster', function(e){
 
 **Explanation:**
 
-When a link is clicked, after two seconds the data will be fetched from "/users/0/data"
-then after every three seconds the same action will be repeated for five times
-then it will stop.
-
+When a link is clicked, after two seconds the data will be fetched from "/users/0/data" then after every three seconds the same action will be repeated for five times then it will stop.
 
 ### 1.6 `shani-insert`
 
@@ -344,17 +319,13 @@ When status code `400` is returned, toggle  `danger` and `alert` classes of elem
 
 **Description:**
 
-In Shani-ob, all requests send by the browser via AJAX, if you want to establish
-web socket connection or server-sent-event ,use `shani-scheme` with values `ws` and
-`sse` respectively where `ws` refers to _web socket_ and `sse` is _server sent event_.
-Make sure your web server supports web socket or server sent event before using this
-feature.
+In Shani-ob, all requests send by the browser via AJAX, if you want to establish web socket connection or server-sent-event ,use `shani-scheme` with values `ws` and `sse` respectively where `ws` refers to _web socket_ and `sse` is _server sent event_. Make sure your web server supports web socket or server sent event before using this feature.
 
 **Syntax:**
 
 `shani-scheme="ws|sse"`
 
-**Example 1: (Using websocket)**
+**Example 1: (Using web socket)**
 
 ```html
 <a href="/users/0/data" shani-fn="r" shani-scheme="ws">Click me</a>
