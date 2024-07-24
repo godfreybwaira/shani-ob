@@ -36,13 +36,12 @@ using the idea of HATEOAS (Hypermedia as the engine of application state).
 5. `shani-poll`
 6. `shani-insert`
 7. `shani-css`
-8. `shani-mw`
-9. `shani-scheme`
-10. `shani-watch`
-11. `watch-on`
-12. `shani-on`
-13. `shani-log`
-14. `watch-xss`
+8. `shani-scheme`
+9. `shani-watch`
+10. `watch-on`
+11. `shani-on`
+12. `shani-log`
+13. `watch-xss`
 
 Other supported HTML attributes are:
 
@@ -341,31 +340,7 @@ When event `success` is fired by an element, replace it's `danger` class with `a
 
 When status code `400` is returned, toggle  `danger` and `alert` classes of element `a`
 
-### 1.8 `shani-mw`
-
-**Description:**
-
-If you want to apply your own function on output returned by server before rendering
-to a web page, you should `shani-mw` (Shani middleware) attribute. It is used to
-mutate the output before rendering to the DOM.
-
-**Syntax:**
-
-`shani-mw="event_or_statusCode:middlewareName[:middlewareName][|event_or_statusCode:middlewareName[:middlewareName]]"`
-
-**Example:**
-
-```html
-<a shani-mw="200:Data.createTable|404:showNotFound" shani-fn="r" href="/users">Click me</a>
-```
-
-**Explanation:**
-
-When the status code `200` is returned, call user defined function (middleware)
-named `Data.createTable`, but if the status code is `404` call user defined
-function `showNotFound`. Middleware callbacks accept a response object as first parameter. This middleware MUST return a value which will be inserted into DOM.
-
-### 1.9 `shani-scheme`
+### 1.8 `shani-scheme`
 
 **Description:**
 
@@ -400,7 +375,7 @@ Establish a web socket connection to `ws://[yourhost]/users/0/data` when a link 
 When a link is clicked, establish server-sent-event connection to `[yourhost]/users/0/data`.
 The default scheme used here is the current scheme used by web browser (either http or https)
 
-### 1.10 `shani-watch`
+### 1.9 `shani-watch`
 
 **Description:**
 
@@ -423,7 +398,7 @@ You can watch one or more elements separated by comma.
 This `div.container` watches for an element with id `profile` when it is clicked.
 You can ommit `watch-on` attribute to watch for an element as soon as it is created.
 
-### 1.11 `watch-on`
+### 1.10 `watch-on`
 
 **Description:**
 
@@ -459,7 +434,7 @@ Some built-in events have direct meaning, such as:
 This `div.container` watches for an element with id `profile` when it is clicked.
 If you ommit `watch-on` attribute the default value will be `watch-on="init"`.
 
-### 1.12 `shani-on`
+### 1.11 `shani-on`
 
 **Description:**
 
@@ -510,7 +485,7 @@ debugging purpose.
 
 When set to true, the raw request data will be printed on console.
 
-### 1.12 `watch-xss`
+### 1.13 `watch-xss`
 
 **Description:**
 
