@@ -266,8 +266,7 @@ When a link is clicked, after two seconds the data will be fetched from "/users/
 
 **Description:**
 
-`shani-css` is used to manipulate CSS classes based on given event fired by an element
-or a status code returned by server. You can use multiple callbacks separated by `|`
+`shani-css` is used to manipulate CSS classes based on given event fired by an element or a status code returned by server. You can use multiple callbacks separated by `|`
 
 **Syntax:**
 
@@ -281,8 +280,7 @@ or a status code returned by server. You can use multiple callbacks separated by
 
 **Explanation:**
 
-When status code `404` is returned by server, add CSS classes `danger` and `bold`
-to element `a`
+When status code `404` is returned by server, add CSS classes `danger` and `bold` to element `a`
 
 **Example 2: (Removing classes from an element)**
 
@@ -344,15 +342,13 @@ Establish a web socket connection to `ws://[yourhost]/users/0/data` when a link 
 **Explanation:**
 
 When a link is clicked, establish server-sent-event connection to `[yourhost]/users/0/data`.
-The default scheme used here is the current scheme used by web browser (either http or https)
+The default scheme used here is the current scheme used by web browser (either HTTP or HTTPS)
 
 ### 1.9 `shani-watch`
 
 **Description:**
 
-`shani-watch` attribute is used to watch for events fired by another HTML element then
-perform required action. One element fire event, another element react to that event.
-You can watch one or more elements separated by comma.
+`shani-watch` attribute is used to watch for events fired by another HTML element then perform required action. One element fire event, another element react to that event. You can watch one or more elements separated by comma.
 
 **Syntax:**
 
@@ -366,15 +362,13 @@ You can watch one or more elements separated by comma.
 
 **Explanation:**
 
-This `div.container` watches for an element with id `profile` when it is clicked.
-You can ommit `watch-on` attribute to watch for an element as soon as it is created.
+This `div.container` watches for an element with id `profile` when it is clicked. You can omit `watch-on` attribute to watch for an element as soon as it is created.
 
 ### 1.10 `watch-on`
 
 **Description:**
 
-`watch-on` attribute is used to define watching events fired by element or status
-codes returned by server. It is used along side with `shani-watch` attribute.
+`watch-on` attribute is used to define watching events fired by element or status codes returned by server. It is used along side with `shani-watch` attribute.
 
 Some built-in events have direct meaning, such as:
 
@@ -402,22 +396,19 @@ Some built-in events have direct meaning, such as:
 
 **Explanation:**
 
-This `div.container` watches for an element with id `profile` when it is clicked.
-If you ommit `watch-on` attribute the default value will be `watch-on="init"`.
+This `div.container` watches for an element with id `profile` when it is clicked. If you omit `watch-on` attribute the default value will be `watch-on="init"`.
 
 ### 1.11 `shani-on`
 
 **Description:**
 
-`shani-on` attribute is used to define events fired by element. It is used along
-side with `shani-fn` attribute. There are default events for some elements as follows:
+`shani-on` attribute is used to define events fired by element. It is used alongside with `shani-fn` attribute. There are default events for some elements as follows:
 
 * `submit` for form elements
 * `change` for input, select and textarea elements
 * `click` for all other elements
 
-You can attach one or more events to listen on a single element. If you ommit this
-attribute the defaults will me assumed.
+You can attach one or more events to listen on a single element. If you omit this attribute the defaults will me assumed.
 
 **Syntax:**
 
@@ -431,16 +422,13 @@ attribute the defaults will me assumed.
 
 **Explanation:**
 
-This `div.container` watches for an element with id `profile` when it is clicked.
-If you ommit `watch-on` attribute the default value will be `watch-on="init"`.
+This `div.container` watches for an element with id `profile` when it is clicked. If you omit `watch-on` attribute the default value will be `watch-on="init"`.
 
 ### 1.12 `shani-log`
 
 **Description:**
 
-`shani-log` attribute is used to display on console the request and response data
-as well as response headers coming from server. This attribute is handy only for
-debugging purpose.
+`shani-log` attribute is used to display on console the request and response data as well as response headers coming from server. This attribute is handy only for debugging purpose.
 
 **Syntax:**
 
@@ -494,6 +482,7 @@ where [your/type] can be any of `application/json`, `text/yaml`, `application/xm
 **Explanation:**
 
 The form above will be sent to `/handler/form` using POST HTTP method as `application/json`.
+
 Mind you that this current version of `shani-ob` does not support sending file as JSON.
 
 ## Shanifying your HTML
@@ -518,15 +507,22 @@ Shanify('.page', {
 
 **Explanation:**
 
-`nodes_or_selector` can be of type string or HTMLElement, if it is `string` then it
-must be valid css selector. `shaniAttributes` must be object of supported shani
-attributes alongside with their values. When `applyToSelf` is set to true, then
-`nodes_or_selector` will be shanified, else it's children will be shanified.
+`nodes_or_selector` can be of type string or `HTMLElement`, if it is `string` then it must be valid CSS selector. `shaniAttributes` must be object of supported Shani attributes alongside with their values. When `applyToSelf` is set to true, then `nodes_or_selector` will be shanified, else it's children will be shanified.
 
+## Redirection
+
+Shani supports request redirection in two ways:
+1. Ajax redirection via response header `x-ajax` set to `1`
+2. Normal HTTP redirection
+
+Both types of redirection must supported by server through response header `location` and status code `300 <= status code < 400.
+
+If `x-ajax` response header is not provided, then the redirection is handled normally. When this happens and the request URL is `#` then self page refresh is performed, i.e `history.go(0)`, otherwise the redirection is done following the URL.
+
+If `x-ajax` response header is provided, server can also add additional header that are supported by Shani. These headers MUST be valid Shani attributes mentioned under **Usage** section.
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first
-to discuss what you would like to change.
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
