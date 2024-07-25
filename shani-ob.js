@@ -320,7 +320,7 @@
         };
         return {
             HTML_ATTR: ['enctype', 'method'],
-            SHANI_ATTR: ['mw', 'target', 'header', 'plugin', 'poll', 'insert', 'css', 'fn', 'scheme', 'log'],
+            SHANI_ATTR: ['target', 'header', 'plugin', 'poll', 'insert', 'css', 'fn', 'scheme', 'log'],
             init(req, node) {
                 req.url = node.getAttribute('href') || node.getAttribute('action') || node.value;
                 setAttr(req, node, this.SHANI_ATTR, 'shani-');
@@ -426,7 +426,7 @@
         };
         const submit = function (req, trigger) {
             if (req.detail && !req.fn) {
-                return trigger('ready', {req, resp: req.detail.resp});
+                return trigger('ready', {req, resp: req.detail.resp}, req.detail.resp.code);
             }
             req[req.fn]();
         };
@@ -700,7 +700,6 @@
                 req.timer.steps = Number(poll[1] || -1) * 1000;
                 setTimeout(cb, Number(poll[0] || 0) * 1000, req, HTTP.fire);
             }, fire(e, obj, code) {
-                code ||= obj.resp.code;
                 const status = HTTP.statusText(code);
                 Utils.dispatch(e, obj);
                 if (code) {
