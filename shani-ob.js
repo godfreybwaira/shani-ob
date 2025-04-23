@@ -100,9 +100,6 @@
                 if (type && type !== 'form-data') {
                     headers.set('content-type', req.enctype.trim());
                 }
-                if (!headers.has('x-request-mode')) {
-                    headers.set('x-request-mode', 'async');
-                }
                 return headers;
             },
             logger(req, data) {
@@ -652,7 +649,6 @@
                     xhr.setRequestHeader(h[0], h[1]);
                 }
                 loaders(req, xhr, endCb);
-                xhr.withCredentials = true;
                 xhr.send(payload.data);
             }, statusText(code) {
                 if (!code) {
@@ -788,7 +784,7 @@
             });
         };
         return function (req) {
-            loaders(req, new EventSource(req.url, {withCredentials: true}));
+            loaders(req, new EventSource(req.url));
         };
     })();
 })(document);
