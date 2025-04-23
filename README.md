@@ -179,7 +179,7 @@ when page loaded send the headers `x-powered-by` and `accept` then get content f
 
 **Explanation:**
 
-When a link is clicked and the status code `404` is returned, fire the event named
+When a link is clicked and the HTTP status code `404` is returned, fire the event named
 `shani:plugin:toaster`. The event object will contain `detail` object with object `{event: "plugin:toaster", params: "color red"}`. Note the space which was used to separate parameters. You can listen for this event using `document` object and act accordingly.
 
 *Example:*
@@ -266,7 +266,7 @@ When a link is clicked, after two seconds the data will be fetched from "/users/
 
 **Description:**
 
-`shani-css` is used to manipulate CSS classes based on given event fired by an element or a status code returned by server. You can use multiple callbacks separated by `|`
+`shani-css` is used to manipulate CSS classes based on given event fired by an element or HTTP status code. You can use multiple callbacks separated by `|`
 
 **Syntax:**
 
@@ -280,7 +280,7 @@ When a link is clicked, after two seconds the data will be fetched from "/users/
 
 **Explanation:**
 
-When status code `404` is returned by server, add CSS classes `danger` and `bold` to element `a`
+When HTTP status code `404` is returned, add CSS classes `danger` and `bold` to element `a`
 
 **Example 2: (Removing classes from an element)**
 
@@ -290,7 +290,7 @@ When status code `404` is returned by server, add CSS classes `danger` and `bold
 
 **Explanation:**
 
-When status code `200` is returned by server, remove CSS `danger` and `bold` classes
+When HTTP status code `200` is returned, remove CSS `danger` and `bold` classes
 from element `a`
 
 **Example 3: (Replace classes from element)**
@@ -311,7 +311,7 @@ When event `success` is fired by an element, replace it's `danger` class with `a
 
 **Explanation:**
 
-When status code `400` is returned, toggle  `danger` and `alert` classes of element `a`
+When HTTP status code `400` is returned, toggle  `danger` and `alert` classes of element `a`
 
 ### 1.8 `shani-scheme`
 
@@ -368,7 +368,7 @@ This `div.container` watches for an element with id `profile` when it is clicked
 
 **Description:**
 
-`watch-on` attribute is used to define watching events fired by element or status codes returned by server. It is used along side with `shani-watch` attribute.
+`watch-on` attribute is used to define watching events fired by element or HTTP status codes. It is used along side with `shani-watch` attribute.
 
 Some built-in events have direct meaning, such as:
 
@@ -515,7 +515,7 @@ Shani supports request redirection in two ways:
 1. Ajax redirection via response header `x-ajax` set to `1`
 2. Normal HTTP redirection
 
-Both types of redirection must supported by server through response header `location` and status code `300 <= status code < 400.
+Both types of redirection must supported by server through response header `location` and HTTP status code `300 <= status code < 400.
 
 If `x-ajax` response header is not provided, then the redirection is handled normally. When this happens and the request URL is `#` then self page refresh is performed, i.e `history.go(0)`, otherwise the redirection is done following the URL.
 
