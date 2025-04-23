@@ -402,13 +402,13 @@ This `div.container` watches for an element with id `profile` when it is clicked
 
 **Description:**
 
-`shani-on` attribute is used to define events fired by element. It is used alongside with `shani-fn` attribute. There are default events for some elements as follows:
+`shani-on` attribute is used to define events fired by element. It is used alongside with `shani-fn` attribute. There are default events for some elements:
 
 * `submit` for form elements
 * `change` for input, select and textarea elements
 * `click` for all other elements
 
-You can attach one or more events to listen on a single element. If you omit this attribute the defaults will me assumed.
+You can attach one or more events to listen on a single element. If you omit this attribute the defaults will be assumed.
 
 **Syntax:**
 

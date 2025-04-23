@@ -247,17 +247,8 @@
                 Shani.init(node);
             }
         };
-        const setId = function (form) {
-            const inputs = form.querySelectorAll('[name]');
-            for (let n = 0; n < inputs.length && inputs[n].id.length === 0; n++) {
-                inputs[n].id = inputs[n].name;
-            }
-        };
         const start = function (node, attr) {
             if (node.hasAttribute(attr)) {
-                if (node.tagName === 'FORM') {
-                    setId(node);
-                }
                 Routing.listen(node);
             }
         };
@@ -284,11 +275,10 @@
                 }
             },
             shanify(obj, self) {
-                const attr = 'shani-fn';
                 if (self) {
-                    start(obj, attr);
+                    start(obj, 'shani-fn');
                 } else {
-                    Shani.create(obj, attr, start);
+                    Shani.create(obj, 'shani-fn', start);
                 }
                 Watcher.watch(obj, self);
             }
@@ -322,6 +312,7 @@
                 req.url = node.getAttribute('href') || node.getAttribute('action') || node.value;
                 setAttr(req, node, this.SHANI_ATTR, 'shani-');
                 setAttr(req, node, this.HTML_ATTR, '');
+                req.target = req.target ? doc.querySelector(req.target) : node;
                 req.timer = Utils.object();
             }
         };
@@ -367,16 +358,15 @@
                 }
             },
             copy() {
-                const node = getTarget(this);
-                if (Utils.isInput(node)) {
-                    node.select();
+                if (Utils.isInput(this.target)) {
+                    this.target.select();
                     doc.execCommand('copy');
                 } else {
                     const box = doc.createElement('TEXTAREA');
                     box.style.width = 0;
                     box.style.height = 0;
                     doc.body.appendChild(box);
-                    box.value = node.innerText;
+                    box.value = this.target.innerText;
                     box.select();
                     doc.execCommand('copy');
                     box.remove();
@@ -406,16 +396,13 @@
                 HTTP.fire('end', obj).rerun(req, submit);
             });
         };
-        const getTarget = function (req) {
-            return req.target ? doc.querySelector(req.target) : req.emitter;
-        };
         const getCover = function (req, fs) {
             const cover = doc.createElement('div'), size = 100 + (fs || 0);
             const style = doc.createElement('div'), id = 'shn' + Date.now();
             cover.setAttribute('id', id);
             let content = 'body>:not(#' + id + '){display:none}#' + id + '{position:fixed;top:0;left:0;width:100%;';
             content += 'height:100%;padding:1rem;overflow-y:auto;font-size:' + size + '%;background:#fff;z-index:999;}';
-            cover.innerHTML = getTarget(req).outerHTML;
+            cover.innerHTML = req.target.outerHTML;
             cover.insertBefore(style, cover.firstChild);
             doc.body.insertBefore(cover, doc.body.firstChild);
             style.innerHTML = content;
@@ -499,7 +486,7 @@
                     if (typeof obj === 'object') {
                         const isArray = obj instanceof Array;
                         for (let key in obj) {
-                            node += convert(obj[key], isArray ? tag.replace(/[ ]+/, '-') + (1 + parseInt(key)) : key);
+                            node += convert(obj[key], isArray ? 'item' : key.replace(/[ ]+/, '-'));
                         }
                     } else {
                         node += obj;
