@@ -428,7 +428,7 @@ This `div.container` watches for an element with id `profile` when it is clicked
 
 **Description:**
 
-`shani-log` attribute is used to display on console the request and response data as well as response headers coming from server. This attribute is handy only for debugging purpose.
+`shani-log` attribute is used to display on console the request and response data as well as response headers coming from server. This attribute is intended only for debugging purpose.
 
 **Syntax:**
 
@@ -515,7 +515,7 @@ Shani supports request redirection in two ways:
 1. Ajax redirection via response header `x-ajax` set to `1`
 2. Normal HTTP redirection
 
-Both types of redirection must supported by server through response header `location` and HTTP status code `300 <= status code < 400.
+Both types of redirection must supported by server through response header `location` and HTTP status code `300 <= status code < 400`.
 
 If `x-ajax` response header is not provided, then the redirection is handled normally. When this happens and the request URL is `#` then self page refresh is performed, i.e `history.go(0)`, otherwise the redirection is done following the URL.
 
