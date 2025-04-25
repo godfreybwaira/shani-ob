@@ -30,18 +30,17 @@ using the idea of HATEOAS (Hypermedia as the engine of application state).
 **Shani-ob** has the following attributes:
 
 1. `shani-fn`
-2. `shani-target`
+2. `shani-watcher`
 3. `shani-header`
 4. `shani-plugin`
 5. `shani-poll`
 6. `shani-insert`
 7. `shani-css`
 8. `shani-scheme`
-9. `shani-watch`
-10. `watch-on`
-11. `shani-on`
-12. `shani-log`
-13. `watch-xss`
+9. `watch-on`
+10. `shani-on`
+11. `shani-log`
+12. `shani-xss`
 
 Other supported HTML attributes are:
 
@@ -53,12 +52,12 @@ Other supported HTML attributes are:
 Let us learn by examples. Look at the following `html` codes:
 
 ```html
-<input type="search" shani-fn="r" shani-on="keyup|change" id="search" method="GET" action="/users/search" />
+<input type="search" shani-fn="r" shani-on="keyup,change" id="search" method="GET" action="/users/search" />
 ```
 
-* The attribute `shani-on` accepts one or more valid JavaScript events separated by `|` (pipe). This tells the browser to register events `keyup` and `change` (in this case) on `input` element. If attribute `shani-on` was not specified, the default `shani-on="change"` will be used (for all `input`, `select` and `textarea` elements).
+* The attribute `shani-on` accepts one or more valid JavaScript events separated by `,` (comma). This tells the browser to register events `keyup` and `change` (in this case) on `input` element. If attribute `shani-on` was not specified, the default `shani-on="change"` will be used (for all `input`, `select` and `textarea` elements).
 
-* Attribute `shani-fn` has the value `r` which tells the browser to read data from server using `GET` method. Other values for `shani-fn` includes `w`, `copy`, `print` and `fs`. The descriptions about these values will be given later.
+* Attribute `shani-fn` has the value `r` which tells the browser to read data from server using `GET` method. Other value(s) for `shani-fn` includes `w`. The descriptions about these values will be given later.
 
 * The main difference between `r` (read) and `w` (write) callbacks is that `r` uses 'GET' as default HTTP method while `w` uses 'POST' as default HTTP method. However, you can override HTTP method using `method` attribute on both callbacks.
 
@@ -69,10 +68,10 @@ Let us learn by examples. Look at the following `html` codes:
 Now consider the following HTML code:
 
 ```html
-<div shani-watch="input#search" watch-on="change" shani-insert="replace"></div>
+<div watch-on="change" shani-insert="replace"></div>
 ```
 
-* The `div` element listens for `change` event on `input` element with id of `search` so that whenever the result is returned by the browser is inserted to the `div` element (replacing the existing content inside `div`).
+* The `div` element listens for `change` event so that whenever the result is returned by the server is inserted to this `div` element (replacing the existing content inside `div`).
 
 ## 1. Attributes
 ### 1.1 `shani-fn`
@@ -87,9 +86,8 @@ Now consider the following HTML code:
 
 * `r` (reading from server e.g: shani-fn="r")
 * `w` (writing to server e.g: shani-fn="w")
-* `print` (printing part of html document e.g: shani-fn="print" shani-target="selector")
-* `fs` (full screen part of html document e.g: shani-fn="fs" shani-target="selector")
-* `copy` (copy content of a document e.g: shani-fn="fs" shani-target="selector")
+
+However, if the `value` is not supported by `shani-ob` (i.e not a function), it tries to find a plugin with same name as `value` and call it. Description about plugins will be discussed later.
 
 **Example:**
 
@@ -101,44 +99,24 @@ Now consider the following HTML code:
 
 When a link is clicked, the callback `r` is called, triggering GET request to URL specified by `href` attribute. The output is discarded. if you want to insert the output to the DOM then use `shani-insert` attribute.
 
-### 1.2 `shani-target`
+### 1.2 `shani-watcher`
 
 **Description:**
 
-`shani-target` is used to define a target element which will be affected by the callback action. This attribute is used only when `shani-fn="print|fs|copy"`.
+`shani-watcher` is used to define a target element that is listening to event(s) emitted by the source element. Element referenced by `shani-watcher` MUST have `watch-on` attribute so that they can receive event(s) fired by the source element. Otherwise nothing will happen.
 
 **Syntax:**
 
-`shani-target="selector"` where `selector` can be any valid css selector.
+`shani-watcher="selector[,selector]"` where `selector` can be any valid css selector.
 
 **Example 1:**
 
 ```html
-<button shani-fn="print" shani-target="div#page2">Print Page 2</button>
+<button shani-fn="r" shani-watcher="div#page2">Print Page 2</button>
 ```
 **Explanation:**
 
-When a button is clicked, the callback `print` is called, triggering print dialog box to print the content of `div#page2`.
-
-**Example 2:**
-
-```html
-<button shani-fn="copy" shani-target="div#page2">Copy Page 2</button>
-```
-
-**Explanation:**
-
-When a button is clicked, the callback `copy` is called, copying the content of `div#page2` to clipboard.
-
-**Example 3:**
-
-```html
-<button shani-fn="fs" shani-target="div#page2">View full Scrren</button>
-```
-
-**Explanation:**
-
-When a button is clicked, the callback `fs` is called, triggering full screen showing only the content of `div#page2`.
+When a button is clicked, the callback `r` is called and the emitted event(s) is sent to `div#page2` element.
 
 ### 1.3 `shani-header`
 
@@ -165,22 +143,22 @@ when page loaded send the headers `x-powered-by` and `accept` then get content f
 
 **Description:**
 
-`shani-plugin` invoke user defined JavaScript function when an event is fired by Shani object. User can listen to an event generated via `shani:plugin:pluginName` using `document` object and perform the required action. If parameters were given, these parameters will be available on `event.detail` object. Use a single space as a parameter separator, multiple plugins are separated by `|`.
+`shani-plugin` invoke user defined JavaScript function when an event is fired by Shani object. User can listen to an event generated via `shani:plugin:pluginName` using `document` object and perform the required action. If parameters were given, these parameters will be available on `event.detail` object. Use a single space as a parameter separator, multiple plugins are separated by `,`.
 
 **Syntax:**
 
-`shani-plugin="event_or_statusCode:pluginName[:params_list][|event_or_statusCode:pluginName[:params_list]]"`
+`shani-plugin="event_or_statusCode:pluginName[,event_or_statusCode:pluginName]"`
 
 **Example:**
 
 ```html
-<a href="/users" shani-plugin="404:toaster:color red" shani-fn="r">View All</a>
+<a href="/users" shani-plugin="404:toaster,200:drawer" shani-fn="r">View All</a>
 ```
 
 **Explanation:**
 
-When a link is clicked and the HTTP status code `404` is returned, fire the event named
-`shani:plugin:toaster`. The event object will contain `detail` object with object `{event: "plugin:toaster", params: "color red"}`. Note the space which was used to separate parameters. You can listen for this event using `document` object and act accordingly.
+When a link is clicked and the HTTP status code `404` is returned, create events named
+`shani:plugin:toaster` and `shani:plugin:drawer`. You can listen for these events using `document` object and act accordingly.
 
 *Example:*
 ```js
@@ -266,16 +244,16 @@ When a link is clicked, after two seconds the data will be fetched from "/users/
 
 **Description:**
 
-`shani-css` is used to manipulate CSS classes based on given event fired by an element or HTTP status code. You can use multiple callbacks separated by `|`
+`shani-css` is used to manipulate CSS classes based on given event fired by an element or HTTP status code. You can use multiple callbacks separated by `,`
 
 **Syntax:**
 
-`shani-css="event_or_statusCode:[add|remove|replace|toggle]:[class1[ class2]]"`
+`shani-css="event_or_statusCode:[add|remove|replace|toggle][ class1[ class2]][,event_or_statusCode:[add|remove|replace|toggle][ class1[ class2]]]"`
 
 **Example 1: (Adding classes to an element)**
 
 ```html
-<a href="/users/3" shani-fn="r" shani-css="404:add:danger bold">Click me</a>
+<a href="/users/3" shani-fn="r" shani-css="404:add danger bold">Click me</a>
 ```
 
 **Explanation:**
@@ -344,61 +322,44 @@ Establish a web socket connection to `ws://[yourhost]/users/0/data` when a link 
 When a link is clicked, establish server-sent-event connection to `[yourhost]/users/0/data`.
 The default scheme used here is the current scheme used by web browser (either HTTP or HTTPS)
 
-### 1.9 `shani-watch`
+### 1.9 `watch-on`
 
 **Description:**
 
-`shani-watch` attribute is used to watch for events fired by another HTML element then perform required action. One element fire event, another element react to that event. You can watch one or more elements separated by comma.
-
-**Syntax:**
-
-`shani-watch="selector[,selector]"`
-
-**Example:**
-
-```html
-<div class="container" shani-watch="#profile" watch-on="click"></div>
-```
-
-**Explanation:**
-
-This `div.container` watches for an element with id `profile` when it is clicked. You can omit `watch-on` attribute to watch for an element as soon as it is created.
-
-### 1.10 `watch-on`
-
-**Description:**
-
-`watch-on` attribute is used to define watching events fired by element or HTTP status codes. It is used along side with `shani-watch` attribute.
+`watch-on` attribute is used to define watching events fired by element or HTTP status codes. It is used along side with `shani-watcher` attribute on element that trigger the event.
 
 Some built-in events have direct meaning, such as:
 
 1. `ready` fired when server returns response
-2. `abort` fired when connection to server is cancelled by client
-3. `error` fired when client fails to connect to server
-4. `timeout` fired when connection to server timed out
-5. `loadstart` fired when client successfully establish connection to server
+2. `abort` or HTTP status code `410` fired when connection to server is cancelled by client
+3. `error` fired when client fails to connect to server or when server returned HTTP status code > 399 && < 500
+4. `timeout` or HTTP status code `408` fired when connection to server timed out
+5. `loadstart` or HTTP status code `102` fired when client successfully establish connection to server
 6. `end` fired when server finished to send data to client
 7. `progress` fired when server is processing the client request (e.g: during file upload)
-8. `init` fired when shani object is created
-9. `copy` fired when page content is copied
-10. `load` fired when the page loads
-11. `demand` fired when the element is visible to the DOM
+8. `init` fired when shani object finished created (initialization completed)
+9. `load` fired when the page loads
+10. `demand` fired when the element is visible to the DOM
+11. `success` fired when server returned HTTP status code > 199 && < 300
+12. `redirect` fired when server returned HTTP status code > 299 && < 400
+13. `info` fired when server returned HTTP status code < 200
+14. `down` fired when server returned HTTP status code > 499
 
 **Syntax:**
 
-`watch-on="eventName_or_statusCode[|eventName_or_statusCode]"`
+`watch-on="eventName_or_statusCode[,eventName_or_statusCode]"`
 
 **Example:**
 
 ```html
-<div class="container" shani-watch="#profile" watch-on="click"></div>
+<div class="container" watch-on="click"></div>
 ```
 
 **Explanation:**
 
-This `div.container` watches for an element with id `profile` when it is clicked. If you omit `watch-on` attribute the default value will be `watch-on="init"`.
+This `div.container` listens for click event and do nothing.
 
-### 1.11 `shani-on`
+### 1.10 `shani-on`
 
 **Description:**
 
@@ -412,7 +373,7 @@ You can attach one or more events to listen on a single element. If you omit thi
 
 **Syntax:**
 
-`shani-on="eventName_or_statusCode[|eventName_or_statusCode]"`
+`shani-on="eventName_or_statusCode[,eventName_or_statusCode]"`
 
 **Example:**
 
@@ -424,7 +385,7 @@ You can attach one or more events to listen on a single element. If you omit thi
 
 This `div.container` watches for an element with id `profile` when it is clicked. If you omit `watch-on` attribute the default value will be `watch-on="init"`.
 
-### 1.12 `shani-log`
+### 1.11 `shani-log`
 
 **Description:**
 
@@ -444,20 +405,20 @@ This `div.container` watches for an element with id `profile` when it is clicked
 
 When set to true, the raw request data will be printed on console.
 
-### 1.13 `watch-xss`
+### 1.12 `shani-xss`
 
 **Description:**
 
-`watch-xss` attribute is used to prevent response content from being injected into the DOM as HTML markups. This is important to prevent XSS attack. This attribute is only available with watcher elements (Elements with `shani-watch` attributes).
+`shani-xss` attribute is used to prevent response content from being injected into the DOM as HTML markups. This is important to prevent XSS attack.
 
 **Syntax:**
 
-`watch-xss="[true|false]"`
+`shani-xss="[true|false]"`
 
 **Example:**
 
 ```html
-<div shani-watch="#form" watch-on="200" watch-xss="true">Waiting for server response</div>
+<div watch-on="200" shani-xss="true">Waiting for server response</div>
 ```
 
 **Explanation:**
@@ -487,27 +448,26 @@ Mind you that this current version of `shani-ob` does not support sending file a
 
 ## Shanifying your HTML
 
-You can programatically apply `Shanify` global method to any element on page.
+You can apply `shanify` attribute to a parent element to shanify it's children.
 
 **Syntax:**
 
-```js
-window.Shanify(HTMLElement|string nodes_or_selector, object shaniAttributes, bool applyToSelf = false);
-```
+`shanify="selector[,selector]` where `selector` can be any valid css selector.
 
 **Example:**
 
-```js
-Shanify('.page', {
-    'shani-fn':'r',
-    'shani-on':'click|keyup',
-    'href':'/content/2/page'
-}, false);
+```html
+<div shanify="#home,#school" shani-header="accept:text/html" shani-on="click" shani-fn="r">
+    <a id="home" href="/home" shani-watcher=".pagination">Go Home</a>
+    <a id="school" href="/school">Back to school</a>
+</div>
 ```
 
 **Explanation:**
 
-`nodes_or_selector` can be of type string or `HTMLElement`, if it is `string` then it must be valid CSS selector. `shaniAttributes` must be object of supported Shani attributes alongside with their values. When `applyToSelf` is set to true, then `nodes_or_selector` will be shanified, else it's children will be shanified.
+When document is loaded, make a#home and a#school a shani object (shanify) and apply all shani attributes to children if they are not present on children
+
+In the end, a#home will look like `<a id="home" href="/home" shani-watcher=".pagination" shani-header="accept:text/html" shani-on="click" shani-fn="r">Go Home</a>` and a#school will become `<a id="school" href="/school" shani-header="accept:text/html" shani-on="click" shani-fn="r">Back to school</a>`
 
 ## Redirection
 

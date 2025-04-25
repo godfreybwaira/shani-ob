@@ -28,13 +28,9 @@
         };
         const mo = function (changes) {
             for (let change of changes) {
-                let nodes = change.addedNodes;
+                const nodes = change.addedNodes;
                 for (let node of nodes) {
                     addNode(node);
-                }
-                nodes = change.removedNodes;
-                for (let node of nodes) {
-                    Watcher.OBSERVERS.delete(node);
                 }
             }
         };
@@ -82,29 +78,24 @@
             }, explode(str, sep) {
                 const map = new Map();
                 if (str) {
-                    const raw = str.trim().split(sep || '|');
+                    const raw = str.trim().split(sep || ',');
                     for (let val of raw) {
                         const pos = val.indexOf(':'), key = pos > 0 ? val.substring(0, pos) : val;
                         map.set(key.toLowerCase().trim(), pos > 0 ? val.substring(pos + 1).trim() : null);
                     }
                 }
                 return map;
-            }, functionParams(items) {
-                const idx = items.indexOf(':'), fp = Utils.object();
-                fp.name = idx > -1 ? items.substring(0, idx) : items;
-                fp.params = idx > -1 ? items.substring(idx + 1) : '';
-                return fp;
             },
             getReqHeaders(req) {
-                const type = Utils.getType(req.enctype), headers = Utils.explode(req.header);
+                const type = Utils.getType(req.enctype), headers = Utils.explode(req.header, '|');
                 if (type && type !== 'form-data') {
                     headers.set('content-type', req.enctype.trim());
                 }
                 return headers;
             },
-            logger(req, data) {
-                if (req.log === 'true') {
-                    console.log(data);
+            logger(request, response) {
+                if (request.log === 'true') {
+                    console.log({request, response});
                 }
                 return this;
             }
@@ -112,13 +103,12 @@
     })();
     const HTML = (function () {
         const mutateCSS = function (node, params) {
-            const fp = Utils.functionParams(params);
-            const args = fp.params.split(' ');
-            if (fp.name === 'replace') {
-                return node.classList.replace(args[0], args[1]);
+            const args = params.split(' ');
+            if (args[0] === 'replace') {
+                return node.classList.replace(args[1], args[2]);
             }
-            for (let arg of args) {
-                node.classList[fp.name](arg);
+            for (let i = 1; i < args.length; i++) {
+                node.classList[args[0]](args[1]);
             }
         };
         const placeNode = function (target, data, mode, plainText) {
@@ -146,7 +136,7 @@
         const insertData = function (obj, mode) {
             const hd = obj.resp.headers, node = obj.req.emitter, data = obj.resp.data;
             const type = hd ? Utils.getType(hd.get('content-type')) : null;
-            const plainText = node.getAttribute('watch-xss') === 'true' || type !== 'html';
+            const plainText = node.getAttribute('shani-xss') === 'true' || type !== 'html';
             if (Utils.isInput(node)) {
                 if (setInput(node, data, mode)) {
                     placeNode(node, data, mode, plainText);
@@ -182,64 +172,23 @@
                 insertData(obj, mode);
             }, handlePlugin(obj) {
                 if (obj.req.plugin) {
-                    const pair = Utils.explode(obj.req.plugin);
-                    for (let item of pair) {
+                    const plugin = Utils.explode(obj.req.plugin);
+                    for (let item of plugin) {
                         if (Utils.hasEvent(obj, item[0])) {
-                            const fp = Utils.functionParams(item[1]);
-                            obj.params = fp.params;
-                            Utils.dispatch('plugin:' + fp.name, obj);
+                            HTML.callPlugin(obj, item[1]);
                         }
                     }
                 }
                 return this;
-            }
-        };
-    })();
-    const Watcher = (function () {
-        const notify = function (watcher, detail) {
-            const selectors = watcher.getAttribute('shani-watch').split(',');
-            for (let val of selectors) {
-                if (detail.req.emitter.matches(val)) {
-                    return Shani.init(watcher, detail);
-                }
-            }
-        };
-        const listen = function (e) {
-            for (let node of Watcher.OBSERVERS) {
-                if (Utils.hasEvent(e.detail, node[1])) {
-                    notify(node[0], e.detail);
-                }
-            }
-        };
-        const listener = function (node, attr) {
-            if (!node.hasAttribute(attr)) {
-                return;
-            }
-            let evt = node.getAttribute('watch-on');
-            if (!evt) {
-                evt = 'init';
-                node.setAttribute('watch-on', evt);
-            }
-            evt = Utils.explode(evt);
-            for (let e of evt) {
-                doc.addEventListener('shani:' + e[0], listen);
-            }
-            Watcher.OBSERVERS.set(node, evt);
-        };
-        return {
-            OBSERVERS: new Map(),
-            watch(obj, self) {
-                const attr = 'shani-watch';
-                if (self) {
-                    return listener(obj, attr);
-                }
-                Shani.create(obj, attr, listener);
+            }, callPlugin(obj, name) {
+                Utils.dispatch('plugin:' + name, obj);
+                return this;
             }
         };
     })();
     const Routing = (function () {
         const listener = function (e) {
-            const node = e.target.closest('[shani-on~=' + e.type + ']');
+            const node = e.target.closest('[shani-on~=' + e.type + ']:not([shanify])');
             if (node) {
                 if (['A', 'AREA', 'FORM'].indexOf(node.tagName) > -1) {
                     e.preventDefault();
@@ -247,72 +196,114 @@
                 Shani.init(node);
             }
         };
-        const start = function (node, attr) {
-            if (node.hasAttribute(attr)) {
-                Routing.listen(node);
+        const watcher = function (e) {
+            const selectors = e.detail.req.watcher;
+            if (selectors === null) {
+                return;
+            }
+            const nodes = doc.querySelectorAll(selectors);
+            const evt = e.type.substring('shani:'.length);
+            for (const node of nodes) {
+                const events = node.getAttribute('watch-on');
+                if (events === null) {
+                    continue;
+                }
+                if (events.split(',').indexOf(evt) > -1 || events === '*') {
+                    Shani.init(node, e.detail);
+                }
+            }
+        };
+        const watch = function (node) {
+            const evt = node.getAttribute('watch-on');
+            if (evt === null) {
+                return;
+            }
+            const events = Utils.explode(evt);
+            for (let e of events) {
+                doc.addEventListener('shani:' + e[0], watcher);
+            }
+        };
+        const listen = function (node) {
+            let event = node.getAttribute('shani-on');
+            if (event) {
+                event = Utils.explode(event);
+                for (let e of event) {
+                    if (e[0] === 'load') {
+                        node.addEventListener(e[0], listener);
+                        node.dispatchEvent(new Event(e[0]));
+                    } else if (e[0] === 'demand') {
+                        node.addEventListener(e[0], listener);
+                        Observers.intersect(node);
+                    } else {
+                        doc.addEventListener(e[0], listener);
+                    }
+                }
+            } else {
+                event = node.tagName === 'FORM' ? 'submit' : (Utils.isInput(node) || node.tagName === 'SELECT' ? 'change' : 'click');
+                node.setAttribute('shani-on', event);
+                doc.addEventListener(event, listener);
+            }
+        };
+        const collectAttrs = function (node, attributes, prefix) {
+            const attrs = Utils.object();
+            for (const attr of attributes) {
+                const val = node.getAttribute(prefix + attr);
+                if (val !== null) {
+                    attrs[prefix + attr] = val;
+                }
+            }
+            return attrs;
+        };
+        const applyAttributes = function (nodes, attrs) {
+            for (let node of nodes) {
+                for (let key in attrs) {
+                    if (!node.hasAttribute(key)) {
+                        node.setAttribute(key, attrs[key]);
+                    }
+                }
+            }
+        };
+        const shanifyChildren = function (obj) {
+            const parents = obj.querySelectorAll('[shanify]');
+            for (const parent of parents) {
+                const selector = parent.getAttribute('shanify');
+                if (selector === null) {
+                    continue;
+                }
+                const children = parent.querySelectorAll(selector);
+                applyAttributes(children, collectAttrs(parent, Features.SHANI_ATTR, 'shani-'));
+                applyAttributes(children, collectAttrs(parent, Features.HTML_ATTR, ''));
+            }
+        };
+        const create = function (obj, selector, cb) {
+            const nodes = obj instanceof NodeList ? obj : obj.querySelectorAll(selector);
+            for (const node of nodes) {
+                if (!node.hasAttribute('shanify')) {
+                    cb(node);
+                }
             }
         };
         return {
-            listen(node) {
-                let evt = node.getAttribute('shani-on');
-                if (evt) {
-                    evt = Utils.explode(evt);
-                    for (let e of evt) {
-                        if (e[0] === 'load') {
-                            node.addEventListener(e[0], listener);
-                            node.dispatchEvent(new Event(e[0]));
-                        } else if (e[0] === 'demand') {
-                            node.addEventListener(e[0], listener);
-                            Observers.intersect(node);
-                        } else {
-                            doc.addEventListener(e[0], listener);
-                        }
-                    }
-                } else {
-                    evt = node.tagName === 'FORM' ? 'submit' : (Utils.isInput(node) || node.tagName === 'SELECT' ? 'change' : 'click');
-                    node.setAttribute('shani-on', evt);
-                    doc.addEventListener(evt, listener);
-                }
-            },
-            shanify(obj, self) {
-                if (self) {
-                    start(obj, 'shani-fn');
-                } else {
-                    Shani.create(obj, 'shani-fn', start);
-                }
-                Watcher.watch(obj, self);
+            shanify(obj) {
+                shanifyChildren(obj);
+                create(obj, '[shani-fn]', listen);
+                create(obj, '[watch-on]', watch);
             }
         };
     })();
     const Features = (function () {
-        if (!window.Shanify) {
-            window.Shanify = function (nodes, attrs, self = false) {
-                if (typeof nodes === 'string') {
-                    nodes = doc.querySelectorAll(nodes);
-                }
-                if (!self) {
-                    for (let node of nodes) {
-                        for (let key in attrs) {
-                            node.setAttribute(key, attrs[key]);
-                        }
-                    }
-                }
-                Routing.shanify(nodes, self);
-            };
-        }
-        const setAttr = function (req, node, attrs, prefix) {
+        const setAttrs = function (req, node, attrs, prefix) {
             for (let a of attrs) {
                 req[a] = node.getAttribute(prefix + a);
             }
         };
         return {
             HTML_ATTR: ['enctype', 'method'],
-            SHANI_ATTR: ['target', 'header', 'plugin', 'poll', 'insert', 'css', 'fn', 'scheme', 'log'],
+            SHANI_ATTR: ['watcher', 'header', 'plugin', 'poll', 'insert', 'css', 'xss', 'fn', 'scheme', 'log'],
             init(req, node) {
                 req.url = node.getAttribute('href') || node.getAttribute('action') || node.value;
-                setAttr(req, node, this.SHANI_ATTR, 'shani-');
-                setAttr(req, node, this.HTML_ATTR, '');
-                req.target = req.target ? doc.querySelector(req.target) : node;
+                setAttrs(req, node, this.SHANI_ATTR, 'shani-');
+                setAttrs(req, node, this.HTML_ATTR, '');
                 req.timer = Utils.object();
             }
         };
@@ -323,7 +314,7 @@
             this.detail = detail;
             this.emitter = node;
             Features.init(this, node);
-            Utils.dispatch('init', {req: this});
+            HTTP.fire('init', {req: this});
         };
         Obj.prototype = {
             r() {
@@ -334,44 +325,6 @@
             w() {
                 /*Write*/
                 sendReq(this, 'POST');
-            },
-            print() {
-                if (window.print instanceof Function) {
-                    const cover = getCover(this);
-                    window.print();
-                    cover.remove();
-                }
-            },
-            fs() {
-                /*FullScreen*/
-                if (doc.fullscreenEnabled) {
-                    const cover = getCover(this, 35);
-                    doc.documentElement.requestFullscreen().then(function () {
-                        doc.addEventListener('fullscreenchange', function () {
-                            if (!doc.fullscreenElement) {
-                                cover.remove();
-                            }
-                        });
-                    }).catch(function () {
-                        cover.remove();
-                    });
-                }
-            },
-            copy() {
-                if (Utils.isInput(this.target)) {
-                    this.target.select();
-                    doc.execCommand('copy');
-                } else {
-                    const box = doc.createElement('TEXTAREA');
-                    box.style.width = 0;
-                    box.style.height = 0;
-                    doc.body.appendChild(box);
-                    box.value = this.target.innerText;
-                    box.select();
-                    doc.execCommand('copy');
-                    box.remove();
-                }
-                Utils.dispatch('copy', {req: this});
             }
         };
         const sendReq = function (req, method) {
@@ -396,38 +349,27 @@
                 HTTP.fire('end', obj).rerun(req, submit);
             });
         };
-        const getCover = function (req, fs) {
-            const cover = doc.createElement('div'), size = 100 + (fs || 0);
-            const style = doc.createElement('div'), id = 'shn' + Date.now();
-            cover.setAttribute('id', id);
-            let content = 'body>:not(#' + id + '){display:none}#' + id + '{position:fixed;top:0;left:0;width:100%;';
-            content += 'height:100%;padding:1rem;overflow-y:auto;font-size:' + size + '%;background:#fff;z-index:999;}';
-            cover.innerHTML = req.target.outerHTML;
-            cover.insertBefore(style, cover.firstChild);
-            doc.body.insertBefore(cover, doc.body.firstChild);
-            style.innerHTML = content;
-            return cover;
-        };
-        const submit = function (req, trigger) {
+        const submit = function (req) {
             if (req.detail && !req.fn) {
-                return trigger('ready', {req, resp: req.detail.resp}, req.detail.resp.code);
+                const resp = req.detail.resp;
+                return HTTP.fire('ready', {req, resp}, resp.code);
             }
-            req[req.fn]();
+            if (typeof req[req.fn] === 'function') {
+                req[req.fn]();
+            } else {
+                const obj = {req};
+                HTML.handleCSS(obj).callPlugin(obj, req.fn).handlePlugin(obj);
+            }
         };
         return {
             init(node, detail) {
                 if (!node.hasAttribute('disabled')) {
                     const req = new Obj(node, detail || null);
                     if (!req.poll || req.scheme === 'ws') {
-                        submit(req, HTTP.fire);
+                        submit(req);
                     } else if (req.poll) {
                         HTTP.polling(req, submit);
                     }
-                }
-            }, create(obj, sel, cb) {
-                const nodes = obj instanceof NodeList ? obj : obj.querySelectorAll('[' + sel + ']');
-                for (let n = 0; n < nodes.length; n++) {
-                    cb(nodes[n], sel);
                 }
             }
         };
@@ -674,14 +616,14 @@
                 }
             }, rerun(req, cb) {
                 if (req.timer.steps > -1 && (!req.timer.limit || (--req.timer.limit) > 0)) {
-                    setTimeout(cb, req.timer.steps, req, HTTP.fire);
+                    setTimeout(cb, req.timer.steps, req);
                 }
                 return this;
             }, polling(req, cb) {
                 const poll = req.poll.split(':');
                 req.timer.limit = parseInt(poll[2]) || null;
                 req.timer.steps = Number(poll[1] || -1) * 1000;
-                setTimeout(cb, Number(poll[0] || 0) * 1000, req, HTTP.fire);
+                setTimeout(cb, Number(poll[0] || 0) * 1000, req);
             }, fire(e, obj, code) {
                 const status = HTTP.statusText(code);
                 Utils.dispatch(e, obj);
