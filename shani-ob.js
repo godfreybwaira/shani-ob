@@ -248,7 +248,8 @@
         };
     })();
     const Shani = (() => {
-        const Obj = function (node) {
+        const Obj = function (node, e) {
+            this.event = e;
             this.emitter = node;
             this.timer = Utils.object();
             this.url = node.getAttribute('href') || node.getAttribute('action') || node.value;
@@ -332,6 +333,14 @@
             doc.body.insertBefore(cover, doc.body.firstChild);
             return cover;
         };
+        const getEmittingChild = (shani) => {
+            const parent = getTarget(shani);
+            let target = shani.event.target;
+            while (target !== parent && target.parentElement !== parent) {
+                target = target.parentElement;
+            }
+            return target.parentElement === parent ? target : null;
+        };
         Obj.prototype = {
             r() {
                 //history.pushState(null, doc.title, this.url);
@@ -347,6 +356,43 @@
                     const cover = getCover(this);
                     window.print();
                     cover.remove();
+                }
+            },
+            /**
+             * Offline search
+             * @returns {undefined}
+             */
+            search() {
+                const text = this.emitter.value.trim().toLowerCase(), target = getTarget(this);
+                for (const row of target.children) {
+                    row.style.display = row.textContent.toLowerCase().indexOf(text) < 0 ? 'none' : null;
+                }
+            },
+            /**
+             * Toggle CSS classes on children
+             * @returns {undefined}
+             */
+            toggle() {
+                const target = getEmittingChild(this);
+                if (target !== null) {
+                    const args = this.class.split(' '), parent = getTarget(this);
+                    for (const row of parent.children) {
+                        row.classList.remove(...args);
+                    }
+                    target.classList.add(...args);
+                }
+            },
+            /**
+             * Add CSS classes, if exists remove them.
+             * @returns {undefined}
+             */
+            add() {
+                const target = getEmittingChild(this);
+                if (target !== null) {
+                    const args = this.class.split(' ');
+                    for (const a of args) {
+                        target.classList.toggle(a);
+                    }
                 }
             },
             /**
@@ -368,9 +414,9 @@
         };
         return {
             HTML_ATTR: ['enctype', 'method'],
-            SHANI_ATTR: ['watcher', 'header', 'poll', 'insert', 'xss', 'css', 'remove', 'fn', 'scheme', 'target'],
-            create(node) {
-                const shani = new Obj(node);
+            SHANI_ATTR: ['watcher', 'header', 'poll', 'insert', 'xss', 'css', 'class', 'remove', 'fn', 'scheme', 'target'],
+            create(node, event) {
+                const shani = new Obj(node, event);
                 if (shani[shani.fn] instanceof Function) {
                     if (!shani.poll || shani.scheme === 'ws') {
                         shani[shani.fn]();
@@ -388,9 +434,9 @@
                 if (['A', 'AREA', 'FORM'].indexOf(node.tagName) > -1) {
                     e.preventDefault();
                 }
-                Utils.emitEvent(node, 'on:' + e.type);
+                Utils.emitEvent(node, 'on:' + e.type);//trigger event to watch
                 Utils.emitEvent(node, 'fn:' + node.getAttribute('shani-fn'));
-                Shani.create(node);
+                Shani.create(node, e);
             }
         };
         const setDefaultEvents = (node) => {
@@ -399,10 +445,12 @@
                 events = node.tagName === 'FORM' ? 'submit' : (Utils.isInput(node) || node.tagName === 'SELECT' ? 'change' : 'click');
                 node.setAttribute('shani-on', events);
             }
-            const watchEvents = node.getAttribute('watch-on') || events;
-            const eventList = Utils.explode(watchEvents);
-            for (let e of eventList) {
-                doc.addEventListener('shani:on:' + e[0], watch);
+            const watchEvents = node.getAttribute('watch-on');
+            if (watchEvents !== null) {
+                const eventList = Utils.explode(watchEvents);
+                for (let e of eventList) {
+                    doc.addEventListener('shani:on:' + e[0], watch); //watch for event
+                }
             }
             return events;
         };
@@ -426,7 +474,7 @@
                 const events = watcher.getAttribute('watch-on');
                 if (events.split(',').indexOf(evt) > -1 || events === '*') {
                     if (e.detail.source.matches(watcher.getAttribute('shani-watch'))) {
-                        Shani.create(watcher);
+                        Shani.create(watcher, e);
                     }
                 }
             });
@@ -497,47 +545,34 @@
         };
         const httpHandler = (shani, xhr, cb) => {
             const on = (e, cb) => xhr.addEventListener(e, cb);
+            const response = getHttpResponse(xhr);
             on('readystatechange', function () {
                 if (this.readyState === 4) {
-                    HTTP.fire(shani, getHttpResponse(xhr), xhr.status);
+                    HTTP.fire(shani, response, xhr.status);
                 }
             });
             on('error', () => {
                 if (shani.timer.limit > 0) {
                     shani.timer.limit++;
                 }
-                HTTP.fire(shani, getHttpResponse(xhr), 400);
+                HTTP.fire(shani, response, 400);
             });
-            on('abort', () => HTTP.fire(shani, getHttpResponse(xhr), 410));
-            on('timeout', () => HTTP.fire(shani, getHttpResponse(xhr), 408));
-            on('loadstart', () => HTTP.fire(shani, getHttpResponse(xhr), 102));
-            on('loadend', () => cb(getHttpResponse(xhr)));
+            on('abort', () => HTTP.fire(shani, response, 410));
+            on('timeout', () => HTTP.fire(shani, response, 408));
+            on('loadstart', () => HTTP.fire(shani, response, 102));
+            on('loadend', () => cb(response));
 
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
-                    const resp = getHttpResponse(xhr);
-                    resp.bytes = Utils.object({loaded: e.loaded, total: e.total});
-                    HTTP.fire(shani, resp, 102);
+                    response.bytes = Utils.object({loaded: e.loaded, total: e.total});
+                    HTTP.fire(shani, response, 102);
                 }
             });
         };
         const redirect = (headers) => {
             const url = headers.get('location');
-            if (headers.get('x-redirect')) {//ajax redirection
-                const anchor = doc.createElement('A');
-                for (let hd of headers) {
-                    const attr = hd[0].substring(hd[0].indexOf('x-') + 2);
-                    if (Shani.SHANI_ATTR.indexOf(attr) > -1 || Shani.HTML_ATTR.indexOf(attr) > -1) {
-                        anchor.setAttribute(attr, hd[1]);
-                    }
-                }
-                anchor.href = url;
-                doc.body.appendChild(anchor);
-                anchor.click();
-                return anchor.remove();
-            }
-            if (url === '#') {//reload
-                history.go(0);
+            if (url === '#') {
+                window.location.reload();
             } else {
                 window.location = url;
             }
@@ -568,8 +603,8 @@
                 for (let h of payload.headers) {
                     xhr.setRequestHeader(h[0], h[1]);
                 }
-                httpHandler(shani, xhr, endCb);
                 xhr.send(payload.data);
+                httpHandler(shani, xhr, endCb);
             },
             statusText(code) {
                 if (code > 199 && code < 300) {
@@ -591,7 +626,6 @@
                 if (status === 'redirect') {
                     redirect(response.headers);
                 }
-                return this;
             }
         };
     })();
@@ -651,8 +685,7 @@
                 Utils.emitEvent(shani.emitter, 'on:end');
             });
         };
-        return (shani) => {
-            httpHandler(shani, new EventSource(shani.url));
-        };
+        return (shani) => httpHandler(shani, new EventSource(shani.url));
+
     })();
 })(document);
