@@ -369,10 +369,10 @@
                 }
             },
             /**
-             * Toggle CSS classes on children
+             * Add CSS classes on children. Requires `shani-class`
              * @returns {undefined}
              */
-            toggle() {
+            select() {
                 const target = getEmittingChild(this);
                 if (target !== null) {
                     const args = this.class.split(' '), parent = getTarget(this);
@@ -383,10 +383,10 @@
                 }
             },
             /**
-             * Add CSS classes, if exists remove them.
+             * Toggle CSS classes. Requires `shani-class`
              * @returns {undefined}
              */
-            add() {
+            toggle() {
                 const target = getEmittingChild(this);
                 if (target !== null) {
                     const args = this.class.split(' ');
