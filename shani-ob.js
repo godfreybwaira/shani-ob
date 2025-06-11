@@ -270,7 +270,7 @@
             const poll = shani.poll.split(':');
             shani.timer.limit = parseInt(poll[2]) || null;
             shani.timer.steps = Number(poll[1] || -1) * 1000;
-            setTimeout(shani[shani.fn], Number(poll[0] || 0) * 1000, shani);
+            setTimeout(shani[shani.fn].bind(shani), Number(poll[0] || 0) * 1000);
         };
         /**
          * Resend a polling HTTP request
@@ -279,7 +279,7 @@
          */
         const resubmit = (shani) => {
             if (shani.timer.steps > -1 && (!shani.timer.limit || (--shani.timer.limit) > 0)) {
-                setTimeout(shani[shani.fn], shani.timer.steps, shani);
+                setTimeout(shani[shani.fn].bind(shani), shani.timer.steps);
             }
         };
         /**
@@ -324,11 +324,10 @@
             }
             return wrapper;
         };
-        const getCover = (shani, fs) => {
-            const cover = doc.createElement('div'), size = 100 + (fs || 0);
-            let style = 'position:fixed;top:0;left:0;width:100%;height:100%;padding:1rem;';
-            style += 'overflow-y:auto;font-size:' + size + '%;background:#fff;z-index:998';
-            cover.style = style;
+        const getCover = (shani, size) => {
+            const cover = doc.createElement('div');
+            cover.style = 'position:fixed;top:0;left:0;width:100%;height:100%;padding:1rem;';
+            cover.style += 'overflow-y:auto;font-size:' + (size || 100) + '%;background:#fff;z-index:998';
             cover.innerHTML = getTarget(shani).outerHTML;
             doc.body.insertBefore(cover, doc.body.firstChild);
             return cover;
@@ -355,13 +354,17 @@
             cb(getEmittingChild(shani), args, parent);
         };
         Obj.prototype = {
+            /**
+             * Read content from server
+             */
             r() {
                 //history.pushState(null, doc.title, this.url);
-                /*Read*/
                 sendReq(this, 'GET');
             },
+            /**
+             * Write content to server
+             */
             w() {
-                /*Write*/
                 sendReq(this, 'POST');
             },
             print() {
@@ -425,12 +428,19 @@
                 }
             },
             /**
+             * Remove node from DOM
+             * @returns {undefined}
+             */
+            close() {
+                Utils.removeNode(getTarget(this));
+            },
+            /**
              * Full screen
              * @returns {undefined}
              */
             fs() {
                 if (doc.fullscreenEnabled) {
-                    const cover = getCover(this, 35);
+                    const cover = getCover(this, 135);
                     doc.documentElement.requestFullscreen().then(() => {
                         doc.addEventListener('fullscreenchange', () => {
                             if (!doc.fullscreenElement) {
