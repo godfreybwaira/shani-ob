@@ -33,7 +33,7 @@
                 }
             }
         };
-        const demand = (changes) => {
+        const demand = function (changes) {
             for (let change of changes) {
                 if (change.isIntersecting) {
                     change.target.dispatchEvent(new Event('demand'));
@@ -199,8 +199,8 @@
             }
         };
         const insertData = (node, response) => {
-            const mode = node.getAttribute('shani-insert');
             const hd = response.headers, data = response.data;
+            const mode = node.getAttribute('shani-insert') || 'replace';
             const type = hd ? Utils.getSubtype(hd.get('content-type')) : null;
             const plainText = node.getAttribute('shani-xss') === 'true' || type !== 'html';
             if (Utils.isInput(node)) {
@@ -486,7 +486,7 @@
             }
             const watchEvents = node.getAttribute('watch-on');
             if (watchEvents !== null) {
-                const eventList = Utils.explode(watchEvents);
+                const eventList = Utils.explode(watchEvents, ' ');
                 for (let e of eventList) {
                     doc.addEventListener('shani:on:' + e[0], watch); //watch for event
                 }
@@ -494,7 +494,7 @@
             return events;
         };
         const addListener = (node) => {
-            const evtList = Utils.explode(setDefaultEvents(node));
+            const evtList = Utils.explode(setDefaultEvents(node), ' ');
             for (let evt of evtList) {
                 if (evt[0] === 'load') {
                     node.addEventListener(evt[0], listen);
@@ -588,25 +588,25 @@
         };
         const httpHandler = (shani, xhr, cb) => {
             const on = (e, cb) => xhr.addEventListener(e, cb);
-            const response = getHttpResponse(xhr);
             on('readystatechange', function () {
                 if (this.readyState === 4) {
-                    HTTP.fire(shani, response, xhr.status);
+                    HTTP.fire(shani, getHttpResponse(xhr), xhr.status);
                 }
             });
             on('error', () => {
                 if (shani.timer.limit > 0) {
                     shani.timer.limit++;
                 }
-                HTTP.fire(shani, response, 400);
+                HTTP.fire(shani, getHttpResponse(xhr), 400);
             });
-            on('abort', () => HTTP.fire(shani, response, 410));
-            on('timeout', () => HTTP.fire(shani, response, 408));
-            on('loadstart', () => HTTP.fire(shani, response, 102));
-            on('loadend', () => cb(response));
+            on('abort', () => HTTP.fire(shani, getHttpResponse(xhr), 410));
+            on('timeout', () => HTTP.fire(shani, getHttpResponse(xhr), 408));
+            on('loadstart', () => HTTP.fire(shani, getHttpResponse(xhr), 102));
+            on('loadend', () => cb(getHttpResponse(xhr)));
 
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
+                    const response = getHttpResponse(xhr);
                     response.bytes = Utils.object({loaded: e.loaded, total: e.total});
                     HTTP.fire(shani, response, 102);
                 }
