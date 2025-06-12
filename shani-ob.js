@@ -253,10 +253,10 @@
             this.emitter = node;
             this.timer = Utils.object();
             this.url = node.getAttribute('href') || node.getAttribute('action') || node.value;
-            setAttrs(this, node, Shani.SHANI_ATTR, 'shani-');
-            setAttrs(this, node, Shani.HTML_ATTR, '');
+            setAttribs(this, node, Shani.SHANI_ATTR, 'shani-');
+            setAttribs(this, node, Shani.HTML_ATTR, '');
         };
-        const setAttrs = (shani, node, attrs, prefix) => {
+        const setAttribs = (shani, node, attrs, prefix) => {
             for (const a of attrs) {
                 shani[a] = node.getAttribute(prefix + a);
             }
