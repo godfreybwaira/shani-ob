@@ -189,32 +189,39 @@
         };
     })();
     const HTML = (() => {
-        const setInput = (node, data, mode) => {
+        const setInputData = (node, data, modes, mode, mechanism) => {
             if (mode === 'prepend') {
                 node.value = data + node.value;
             } else if (mode === 'append') {
                 node.value += data;
-            } else {
+            } else if (mode === 'replace') {
                 node.value = data;
+            } else {
+                node[mechanism](modes[mode], data);
             }
         };
-        const insertData = (node, response) => {
-            const hd = response.headers, data = response.data;
-            const mode = node.getAttribute('shani-insert') || 'replace';
-            const type = hd ? Utils.getSubtype(hd.get('content-type')) : null;
-            const plainText = node.getAttribute('shani-xss') === 'true' || type !== 'html';
-            if (Utils.isInput(node)) {
-                setInput(node, data, mode);
-            } else if (mode !== 'replace') {
-                const fn = 'insertAdjacent' + (plainText ? 'Text' : 'HTML');
-                const modes = Utils.object({
-                    prepend: 'afterbegin', append: 'beforeend', replace: 'replace'
-                });
-                node[fn](modes[mode], data);
-            } else if (plainText) {
-                node.textContent = data;
+        const setNodeData = (node, data, modes, mode, plainText, mechanism) => {
+            if (mode === 'replace') {
+                if (plainText) {
+                    node.textContent = data;
+                } else {
+                    node.innerHTML = data;
+                }
             } else {
-                node.innerHTML = data;
+                node[mechanism](modes[mode], data);
+            }
+        };
+        const insertData = (node, modes, data, type) => {
+            const mode = node.getAttribute('shani-insert') || 'replace';
+            const plainText = node.getAttribute('shani-xss') === 'true' || type !== 'html';
+            const mechanism = 'insertAdjacent' + (plainText ? 'Text' : 'HTML');
+            if (Utils.isInput(node)) {
+                setInputData(node, data, modes, mode, mechanism);
+            } else {
+                setNodeData(node, data, modes, mode, plainText, mechanism);
+            }
+            if (mode === 'swap') {
+                node.remove();
             }
         };
         const mutateCSS = (node, params) => {
@@ -228,14 +235,12 @@
         };
         return {
             processResponse(shani, response) {
-                if (!response.data) {
-                    return;
-                }
-                if (shani.target) {
-                    doc.querySelectorAll(shani.target).forEach(node => insertData(node, response));
-                } else if (shani.emitter) {
-                    insertData(shani.emitter, response);
-                }
+                const modes = Utils.object({
+                    prepend: 'afterbegin', append: 'beforeend', replace: 'replace',
+                    swap: 'afterend', before: 'beforebegin', after: 'afterend'
+                });
+                const type = Utils.getSubtype(response?.headers.get('content-type'));
+                doc.querySelectorAll(shani.target).forEach(node => insertData(node, modes, response.data || '', type));
             },
             handleCss(node, css, evt) {
                 const handlers = Utils.explode(css);
@@ -453,7 +458,7 @@
         };
         return {
             HTML_ATTR: ['enctype', 'method'],
-            SHANI_ATTR: ['watcher', 'header', 'poll', 'insert', 'xss', 'css', 'class', 'remove', 'fn', 'scheme', 'target'],
+            SHANI_ATTR: ['watch', 'header', 'poll', 'insert', 'xss', 'css', 'class', 'remove', 'fn', 'scheme', 'target'],
             create(node, event) {
                 const shani = new Obj(node, event);
                 if (shani[shani.fn] instanceof Function) {
