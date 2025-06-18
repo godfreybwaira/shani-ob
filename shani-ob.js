@@ -200,7 +200,7 @@
                 node[mechanism](modes[mode], data);
             }
         };
-        const setNodeData = (node, data, modes, mode, plainText, mechanism) => {
+        const setNodeData = (node, data, modes, mode, mechanism, plainText) => {
             if (mode === 'replace') {
                 if (plainText) {
                     node.textContent = data;
@@ -211,14 +211,14 @@
                 node[mechanism](modes[mode], data);
             }
         };
-        const insertData = (node, modes, data, type) => {
-            const mode = node.getAttribute('shani-insert') || 'replace';
-            const plainText = node.getAttribute('shani-xss') === 'true' || type !== 'html';
+        const insertData = (node, sourceNode, modes, data, type) => {
+            const mode = sourceNode.getAttribute('shani-insert') || 'replace';
+            const plainText = sourceNode.getAttribute('shani-xss') === 'true' || type !== 'html';
             const mechanism = 'insertAdjacent' + (plainText ? 'Text' : 'HTML');
             if (Utils.isInput(node)) {
                 setInputData(node, data, modes, mode, mechanism);
             } else {
-                setNodeData(node, data, modes, mode, plainText, mechanism);
+                setNodeData(node, data, modes, mode, mechanism, plainText);
             }
             if (mode === 'swap') {
                 node.remove();
@@ -240,7 +240,7 @@
                     swap: 'afterend', before: 'beforebegin', after: 'afterend'
                 });
                 const type = Utils.getSubtype(response?.headers.get('content-type'));
-                doc.querySelectorAll(shani.target).forEach(node => insertData(node, modes, response.data || '', type));
+                doc.querySelectorAll(shani.target).forEach(node => insertData(node, shani.emitter, modes, response.data || '', type));
             },
             handleCss(node, css, evt) {
                 const handlers = Utils.explode(css);
