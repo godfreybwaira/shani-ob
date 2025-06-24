@@ -1,4 +1,4 @@
-(function (doc) {
+(doc => {
     'use strict';
     doc.addEventListener('DOMContentLoaded', function () {
         Shanify(this.body);
@@ -239,6 +239,7 @@
                     prepend: 'afterbegin', append: 'beforeend', replace: 'replace',
                     swap: 'afterend', before: 'beforebegin', after: 'afterend'
                 });
+                Utils.emitEvent(shani.emitter, 'on:data', response);
                 const type = Utils.getSubtype(response?.headers.get('content-type'));
                 doc.querySelectorAll(shani.target).forEach(node => insertData(node, shani.emitter, modes, response.data || '', type));
             },
@@ -311,7 +312,7 @@
             }, (response) => {
                 rem.style.opacity = null;
                 rem.removeAttribute('disabled');
-                Utils.emitEvent(shani.emitter, 'on:end', {response});
+                Utils.emitEvent(shani.emitter, 'on:end', response);
                 resubmit(shani);
             });
         };
@@ -474,13 +475,15 @@
     const Shanify = (() => {
         const listen = (e) => {
             const node = e.target.closest('[shani-on~=' + e.type + ']');
-            if (node && !node.hasAttribute('disabled')) {
+            if (node) {
                 if (['A', 'AREA', 'FORM'].indexOf(node.tagName) > -1) {
                     e.preventDefault();
                 }
-                Utils.emitEvent(node, 'on:' + e.type);//trigger event to watch
-                Utils.emitEvent(node, 'fn:' + node.getAttribute('shani-fn'));
-                Shani.create(node, e);
+                if (!node.hasAttribute('disabled')) {
+                    Utils.emitEvent(node, 'on:' + e.type);//trigger event to watch
+                    Utils.emitEvent(node, 'fn:' + node.getAttribute('shani-fn'));
+                    Shani.create(node, e);
+                }
             }
         };
         const setDefaultEvents = (node) => {
@@ -668,6 +671,9 @@
             },
             fire(shani, response, code) {
                 const status = HTTP.statusText(code);
+                if (!(response.code > 0)) {
+                    response.code = code;
+                }
                 Utils.emitEvent(shani.emitter, 'on:' + code, response);
                 Utils.emitEvent(shani.emitter, 'on:' + status, response);
                 HTML.processResponse(shani, response);
