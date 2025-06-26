@@ -461,7 +461,7 @@
             doc.querySelectorAll('[shani-watch]').forEach(watcher => {
                 const events = watcher.getAttribute('watch-on');
                 if (events.split(',').indexOf(evt) > -1 || events === '*') {
-                    if (e.detail.source.matches(watcher.getAttribute('shani-watch'))) {
+                    if (e.detail.emitter.matches(watcher.getAttribute('shani-watch'))) {
                         Shani.create(watcher, e);
                     }
                 }
@@ -514,7 +514,7 @@
                 if (css !== null) {
                     HTML.handleCss(node, css, event);
                 }
-                data.source = node;
+                data.emitter = node;
                 doc.dispatchEvent(new CustomEvent('shani:' + evt, {detail: Utils.object(data)}));
             },
             getReqHeaders(shani) {

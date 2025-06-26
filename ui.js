@@ -60,7 +60,7 @@
         };
     })();
     const Selection = (() => {
-        Utils.listen('end', e => Selection.select(e.detail.source));
+        Utils.listen('end', e => Selection.select(e.detail.emitter));
 //        doc.addEventListener('click', e => Selection.select(e.target));
         const applyProp = (target, node, args) => {
             for (const a of args) {
@@ -161,7 +161,7 @@
             return modal;
         };
         Utils.listen('start', e1 => {
-            const src = e1.detail.source, specs = src.getAttribute('ui-class');
+            const src = e1.detail.emitter, specs = src.getAttribute('ui-class');
             if (specs?.split(' ').indexOf('modal') > -1) {
                 const attr = src.getAttribute('ui-attr'), modal = createModal(specs);
                 addCloseBtn(modal, attr);
@@ -219,7 +219,7 @@
         })('redirect', (e) => {
             toast(e.detail.status || 'Redirecting...', e.detail.code);
         })('data', (e) => {
-            const specs = e.detail.source.getAttribute('ui-class');
+            const specs = e.detail.emitter.getAttribute('ui-class');
             if (specs?.split(' ').indexOf('toaster') > -1) {
                 toast(e.detail.data || '(No data returned)', e.detail.code);
             }
