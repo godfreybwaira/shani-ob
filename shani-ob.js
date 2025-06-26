@@ -305,11 +305,14 @@
             if (rem.tagName === 'FORM') {
                 rem = rem.querySelector('fieldset') || rem;
             }
-            rem.style.opacity = 0.5;
+            rem.style.opacity = 0.4;
+            const targets = doc.querySelectorAll(shani.target);
             HTTP.send(shani, shani.method || method, (request) => {
+                targets.forEach(node => node.style.opacity = 0.4);
                 Utils.emitEvent(shani.emitter, 'on:start', {request});
                 rem.setAttribute('disabled', 'disabled');
             }, (response) => {
+                targets.forEach(node => node.style.opacity = null);
                 rem.style.opacity = null;
                 rem.removeAttribute('disabled');
                 Utils.emitEvent(shani.emitter, 'on:end', response);
@@ -338,27 +341,6 @@
             doc.body.insertBefore(cover, doc.body.firstChild);
             return cover;
         };
-        const getEmittingChild = (shani) => {
-            const parent = getTarget(shani);
-            let target = shani.event.target;
-            while (target !== parent && target.parentElement !== parent) {
-                target = target.parentElement;
-            }
-            return target;
-        };
-        const applyProp = (target, node, args) => {
-            for (const a of args) {
-                node.classList.add(a);
-            }
-            return node === target;
-        };
-        const applySelection = (shani, cb) => {
-            const parent = getTarget(shani), args = shani.class.split(' ');
-            for (const row of parent.children) {
-                row.classList.remove(...args);
-            }
-            cb(getEmittingChild(shani), args, parent);
-        };
         Obj.prototype = {
             /**
              * Read content from server
@@ -372,6 +354,15 @@
              */
             w() {
                 sendReq(this, 'POST');
+            },
+            /**
+             * Remove node from DOM
+             * @returns {undefined}
+             */
+            close() {
+                if (this.emitter.hasAttribute('shani-target') || this.emitter === this.event.target) {
+                    Utils.removeNode(getTarget(this));
+                }
             },
             print() {
                 if (window.print instanceof Function) {
@@ -389,56 +380,6 @@
                 for (const row of target.children) {
                     row.style.display = row.textContent.toLowerCase().indexOf(text) < 0 ? 'none' : null;
                 }
-            },
-            /**
-             * Add CSS classes on children. Requires `shani-class`
-             * @returns {undefined}
-             */
-            select() {
-                applySelection(this, (target, args) => target.classList.add(...args));
-            },
-            /**
-             * Add CSS classes on children from first child to current child. Requires `shani-class`
-             * @returns {undefined}
-             */
-            lselect() {
-                applySelection(this, (target, args, parent) => {
-                    for (const row of parent.children) {
-                        if (applyProp(target, row, args)) {
-                            break;
-                        }
-                    }
-                });
-            },
-            /**
-             * Add CSS classes on children from current child to last child. Requires `shani-class`
-             * @returns {undefined}
-             */
-            rselect() {
-                applySelection(this, (target, args, parent) => {
-                    for (let i = parent.children.length - 1; i >= 0; i--) {
-                        if (applyProp(target, parent.children[i], args)) {
-                            break;
-                        }
-                    }
-                });
-            },
-            /**
-             * Toggle CSS classes. Requires `shani-class`
-             * @returns {undefined}
-             */
-            toggle() {
-                const target = getEmittingChild(this), args = this.class.split(' ');
-                for (const a of args) {
-                    target.classList.toggle(a);
-                }
-            },
-            /**
-             * Remove node from DOM
-             * @returns {undefined}
-             */
-            close() {
-                Utils.removeNode(getTarget(this));
             },
             /**
              * Full screen
@@ -459,7 +400,7 @@
         };
         return {
             HTML_ATTR: ['enctype', 'method'],
-            SHANI_ATTR: ['watch', 'header', 'poll', 'insert', 'xss', 'css', 'class', 'remove', 'fn', 'scheme', 'target'],
+            SHANI_ATTR: ['watch', 'header', 'poll', 'insert', 'xss', 'css', 'fn', 'scheme', 'target'],
             create(node, event) {
                 const shani = new Obj(node, event);
                 if (shani[shani.fn] instanceof Function) {
@@ -528,17 +469,30 @@
         };
 
         return (parentNode) => {
+            if (parentNode.hasAttribute('shani-fn')) {
+                addListener(parentNode);
+            }
             parentNode.querySelectorAll('[shani-fn]').forEach(node => addListener(node));
         };
     })();
     const Utils = (() => {
         return {
-            removeNode(node) {
+            removeNode(node) {//haijatumika bado
                 node.style.opacity = 0;
-                node.addEventListener('transitionend', (e) => e.target.remove());
+                node.addEventListener('transitionend', () => node.remove());
+            },
+            removeNodes(selector) {//haijatumika bado
+                doc.querySelectorAll(selector).forEach(node => Utils.removeNode(node));
             },
             isInput(node) {
                 return ['INPUT', 'TEXTAREA'].indexOf(node.tagName) > -1;
+            },
+            getParentNode(childNode, parentSelector) {
+                const parent = childNode.parentElement;
+                if (!parent || parent.matches(parentSelector)) {
+                    return parent;
+                }
+                return this.getParentNode(parent, parentSelector);
             },
             explode(str, sep = ',') {
                 const map = new Map();
@@ -560,12 +514,7 @@
                 if (css !== null) {
                     HTML.handleCss(node, css, event);
                 }
-                const rme = node.getAttribute('shani-remove');
-                if (rme !== null && (rme === '*' || rme.split(',').indexOf(event) > -1)) {
-                    Utils.removeNode(node);
-                } else {
-                    data.source = node;
-                }
+                data.source = node;
                 doc.dispatchEvent(new CustomEvent('shani:' + evt, {detail: Utils.object(data)}));
             },
             getReqHeaders(shani) {
