@@ -360,9 +360,7 @@
              * @returns {undefined}
              */
             close() {
-                if (this.emitter.hasAttribute('shani-target') || this.emitter === this.event.target) {
-                    Utils.removeNode(getTarget(this));
-                }
+                Utils.removeNode(getTarget(this));
             },
             print() {
                 if (window.print instanceof Function) {
@@ -437,7 +435,7 @@
             if (watchEvents !== null) {
                 const eventList = Utils.explode(watchEvents, ' ');
                 for (let e of eventList) {
-                    doc.addEventListener('shani:on:' + e[0], watch); //watch for event
+                    Utils.listen(e[0], watch); //watch for event
                 }
             }
             return events;
@@ -477,12 +475,19 @@
     })();
     const Utils = (() => {
         return {
-            removeNode(node) {//haijatumika bado
+            removeNode(node) {
                 node.style.opacity = 0;
                 node.addEventListener('transitionend', () => node.remove());
             },
-            removeNodes(selector) {//haijatumika bado
-                doc.querySelectorAll(selector).forEach(node => Utils.removeNode(node));
+            selectNode(children, activeChild, cssClass) {
+                for (const row of children) {
+                    row.classList.remove(cssClass);
+                }
+                activeChild.classList.add(cssClass);
+            },
+            listen(e, cb) {
+                doc.addEventListener('shani:on:' + e, cb);
+                return Utils.listen;
             },
             isInput(node) {
                 return ['INPUT', 'TEXTAREA'].indexOf(node.tagName) > -1;
@@ -492,7 +497,7 @@
                 if (!parent || parent.matches(parentSelector)) {
                     return parent;
                 }
-                return this.getParentNode(parent, parentSelector);
+                return Utils.getParentNode(parent, parentSelector);
             },
             explode(str, sep = ',') {
                 const map = new Map();
@@ -690,5 +695,139 @@
         };
         return (shani) => httpHandler(shani, new EventSource(shani.url));
 
+    })();
+
+    const UI = (() => {
+        const Carousel = (() => {
+            const rotateItems = (carousel, cb) => {
+                const children = carousel.querySelectorAll('.carousel-body>*');
+                const currentActive = carousel.querySelector('.carousel-body>.active');
+                const currentIdx = Array.from(children).indexOf(currentActive);
+                const nextIdx = cb(children.length, currentIdx);
+                Utils.selectNode(children, children[nextIdx], 'active');
+            };
+            Utils.listen('click', e => {
+                if (e.target.classList?.contains('carousel-next')) {
+                    // Calculate next index: cycle to 0 if at end.
+                    rotateItems(e.target.parentNode, (total, idx) => (idx + 1) % total);
+                } else if (e.target.classList?.contains('carousel-prev')) {
+                    // Calculate previous index: add total length to avoid negative modulus.
+                    rotateItems(e.target.parentNode, (total, idx) => (idx - 1 + total) % total);
+                }
+            });
+        })();
+        const Selection = (() => {
+            const select = target => {
+                const parent = Utils.getParentNode(target, '.accordion,.menubar');
+                if (parent) {
+                    const child = getEmittingChild(target, parent);
+                    Utils.selectNode(parent.children, child, 'active');
+                }
+            };
+            const getEmittingChild = (target, parent) => {
+                while (target !== parent && target.parentElement !== parent) {
+                    target = target.parentElement;
+                }
+                return target;
+            };
+            doc.addEventListener('click', e => select(e.target));
+        })();
+        const Modal = (() => {
+            const addCloseBtn = (modal, attr) => {
+                if (attr !== null) {
+                    const position = attr.substring(attr.indexOf(':') + 1), target = '#' + modal.parentElement.id;
+                    const btn = doc.createElement('button');
+                    btn.className = 'button button-times ' + position;
+                    btn.setAttribute('type', 'button');
+                    btn.setAttribute('shani-fn', 'close');
+                    btn.setAttribute('shani-target', target);
+                    modal.appendChild(btn);
+                }
+            };
+            const createModal = (specs) => {
+                const mdbg = doc.createElement('div'), modal = doc.createElement('div'), spinner = doc.createElement('div');
+                modal.className = specs;
+                mdbg.className = 'modal-background';
+                mdbg.id = 'd' + Date.now().toString(36);
+                spinner.className = 'spinner';
+                modal.appendChild(spinner);
+                mdbg.appendChild(modal);
+                doc.body.appendChild(mdbg);
+                return modal;
+            };
+            const closeOtherModals = e => {
+                const selector = e.detail.emitter.getAttribute('shani-target');
+                doc.querySelectorAll('.modal-container').forEach(mc => {
+                    if (mc.querySelector(selector) === null) {
+                        Utils.removeNode(mc);
+                    }
+                });
+            };
+            Utils.listen('start', e1 => {
+                const src = e1.detail.emitter, specs = src.getAttribute('ui-class');
+                if (specs?.split(' ').indexOf('modal') > -1) {
+                    const attr = src.getAttribute('ui-data'), modal = createModal(specs);
+                    addCloseBtn(modal, attr);
+                    Utils.listen('data', e => {
+                        modal.innerHTML = e.detail.data || '';
+                        addCloseBtn(modal, attr);
+                    });
+                }
+                Utils.listen('data', e => closeOtherModals(e));
+            });
+        })();
+        const Loader = (() => {
+            const getLoader = () => {
+                let loader = doc.getElementById('ldrf17tl0');
+                if (loader) {
+                    loader.remove();
+                }
+                loader = doc.createElement('div');
+                loader.id = 'ldrf17tl0';
+                const bar = doc.createElement('div');
+                bar.classList.add('progress');
+                loader.className = 'progress-bar loader';
+                loader.appendChild(bar);
+                return loader;
+            };
+            Utils.listen('start', () => {
+                const loader = getLoader();
+                doc.body.appendChild(loader);
+                Utils.listen('end', () => loader.remove());
+            });
+        })();
+        const Toaster = (() => {
+            const toast = (message, code) => {
+                const content = code + ' &CenterDot; ' + message;
+                let toaster = doc.getElementById('oer89trJ');
+                const color = code === 200 ? 'success' : (code > 399 ? 'danger' : 'info');
+                if (toaster) {
+                    toaster.remove();
+                }
+                toaster = doc.createElement('div');
+                toaster.id = 'oer89trJ';
+                toaster.innerHTML = content;
+                toaster.className = 'toaster pos-tc width-md-5 width-sm-10 color-' + color;
+                doc.body.appendChild(toaster);
+                setTimeout(() => {
+                    toaster.style.transform = 'translateY(-100%)';
+                    toaster.addEventListener('transitionend', e => e.target.remove());
+                }, 3000 + toaster.innerText.length * 64);
+            };
+            Utils.listen('abort', e => {
+                toast(e.detail.status || 'Request cancelled.', e.detail.code);
+            })('error', e => {
+                toast(e.detail.status || 'Failed to connect to server.', e.detail.code);
+            })('timeout', e => {
+                toast(e.detail.status || 'Response takes too long.', e.detail.code);
+            })('redirect', e => {
+                toast(e.detail.status || 'Redirecting...', e.detail.code);
+            })('data', e => {
+                const specs = e.detail.emitter.getAttribute('ui-class');
+                if (specs?.split(' ').indexOf('toaster') > -1) {
+                    toast(e.detail.data || '(No data returned)', e.detail.code);
+                }
+            });
+        })();
     })();
 })(document);
