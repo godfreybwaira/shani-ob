@@ -408,6 +408,10 @@
                         doPolling(shani);
                     }
                 }
+            },
+            on(e, cb) {
+                doc.addEventListener('shani:on:' + e, cb);
+                return Shani.on;
             }
         };
     })();
@@ -435,7 +439,7 @@
             if (watchEvents !== null) {
                 const eventList = Utils.explode(watchEvents, ' ');
                 for (let e of eventList) {
-                    Utils.listen(e[0], watch); //watch for event
+                    Shani.on(e[0], watch); //watch for event
                 }
             }
             return events;
@@ -466,11 +470,11 @@
             });
         };
 
-        return (parentNode) => {
-            if (parentNode.hasAttribute('shani-fn')) {
-                addListener(parentNode);
+        return (parent) => {
+            if (parent.hasAttribute('shani-fn')) {
+                addListener(parent);
             }
-            parentNode.querySelectorAll('[shani-fn]').forEach(node => addListener(node));
+            parent.querySelectorAll('[shani-fn]').forEach(node => addListener(node));
         };
     })();
     const Utils = (() => {
@@ -484,10 +488,6 @@
                     row.classList.remove(cssClass);
                 }
                 activeChild.classList.add(cssClass);
-            },
-            listen(e, cb) {
-                doc.addEventListener('shani:on:' + e, cb);
-                return Utils.listen;
             },
             isInput(node) {
                 return ['INPUT', 'TEXTAREA'].indexOf(node.tagName) > -1;
@@ -706,13 +706,13 @@
                 const nextIdx = cb(children.length, currentIdx);
                 Utils.selectNode(children, children[nextIdx], 'active');
             };
-            Utils.listen('click', e => {
+            doc.addEventListener('click', e => {
                 if (e.target.classList?.contains('carousel-next')) {
                     // Calculate next index: cycle to 0 if at end.
-                    rotateItems(e.target.parentNode, (total, idx) => (idx + 1) % total);
+                    rotateItems(e.target.parentElement, (total, idx) => (idx + 1) % total);
                 } else if (e.target.classList?.contains('carousel-prev')) {
                     // Calculate previous index: add total length to avoid negative modulus.
-                    rotateItems(e.target.parentNode, (total, idx) => (idx - 1 + total) % total);
+                    rotateItems(e.target.parentElement, (total, idx) => (idx - 1 + total) % total);
                 }
             });
         })();
@@ -763,17 +763,17 @@
                     }
                 });
             };
-            Utils.listen('start', e1 => {
+            Shani.on('start', e1 => {
                 const src = e1.detail.emitter, specs = src.getAttribute('ui-class');
                 if (specs?.split(' ').indexOf('modal') > -1) {
                     const attr = src.getAttribute('ui-data'), modal = createModal(specs);
                     addCloseBtn(modal, attr);
-                    Utils.listen('data', e => {
+                    Shani.on('data', e => {
                         modal.innerHTML = e.detail.data || '';
                         addCloseBtn(modal, attr);
                     });
                 }
-                Utils.listen('data', e => closeOtherModals(e));
+                Shani.on('data', e => closeOtherModals(e));
             });
         })();
         const Loader = (() => {
@@ -790,10 +790,10 @@
                 loader.appendChild(bar);
                 return loader;
             };
-            Utils.listen('start', () => {
+            Shani.on('start', () => {
                 const loader = getLoader();
                 doc.body.appendChild(loader);
-                Utils.listen('end', () => loader.remove());
+                Shani.on('end', () => loader.remove());
             });
         })();
         const Toaster = (() => {
@@ -814,7 +814,7 @@
                     toaster.addEventListener('transitionend', e => e.target.remove());
                 }, 3000 + toaster.innerText.length * 64);
             };
-            Utils.listen('abort', e => {
+            Shani.on('abort', e => {
                 toast(e.detail.status || 'Request cancelled.', e.detail.code);
             })('error', e => {
                 toast(e.detail.status || 'Failed to connect to server.', e.detail.code);
