@@ -706,6 +706,14 @@
                 const nextIdx = cb(children.length, currentIdx);
                 Utils.selectNode(children, children[nextIdx], 'active');
             };
+            const rotate = () => {
+                doc.querySelectorAll('.carousel').forEach(node => {
+                    if (node.getAttribute('ui-attr') === 'auto') {
+                        rotateItems(node, (total, idx) => (idx + 1) % total);
+                    }
+                });
+                setTimeout(rotate, 5000);
+            };
             doc.addEventListener('click', e => {
                 if (e.target.classList?.contains('carousel-next')) {
                     // Calculate next index: cycle to 0 if at end.
@@ -715,6 +723,7 @@
                     rotateItems(e.target.parentElement, (total, idx) => (idx - 1 + total) % total);
                 }
             });
+            setTimeout(rotate, 5000);
         })();
         const Selection = (() => {
             const select = target => {
@@ -748,7 +757,7 @@
                 const mdbg = doc.createElement('div'), modal = doc.createElement('div'), spinner = doc.createElement('div');
                 modal.className = specs;
                 mdbg.className = 'modal-background';
-                mdbg.id = 'd' + Date.now().toString(36);
+                mdbg.id = Date.now().toString(36);
                 spinner.className = 'spinner';
                 modal.appendChild(spinner);
                 mdbg.appendChild(modal);
