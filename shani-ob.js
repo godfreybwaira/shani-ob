@@ -264,9 +264,10 @@
         };
         const setAttribs = (shani, node, attrs, prefix) => {
             for (const a of attrs) {
-                shani[a] = node.getAttribute(prefix + a);
+                shani[a] = node.getAttribute(prefix + a) || GLOBAL_ATTR[a] || null;
             }
         };
+        let GLOBAL_ATTR = {};
         /**
          * Make HTTP request at a regular interval
          * @param {type} shani Shani object
@@ -360,7 +361,11 @@
              * @returns {undefined}
              */
             close() {
-                Utils.removeNode(getTarget(this));
+                const node = !this.target ? this.emitter : Utils.getParentNode(this.emitter, this.target);
+                if (node) {
+                    return Utils.removeNode(node);
+                }
+                doc.querySelectorAll(this.target).forEach(node => Utils.removeNode(node));
             },
             print() {
                 if (window.print instanceof Function) {
@@ -396,6 +401,9 @@
                 }
             }
         };
+        if (!window.Shani) {
+            window.Shani = (obj) => GLOBAL_ATTR = Utils.object(obj);
+        }
         return {
             HTML_ATTR: ['enctype', 'method'],
             SHANI_ATTR: ['watch', 'header', 'poll', 'insert', 'xss', 'css', 'fn', 'scheme', 'target'],
