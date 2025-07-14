@@ -476,11 +476,11 @@
             });
         };
 
-        return parent => {
-            if (parent.hasAttribute('shani-fn')) {
-                addListener(parent);
+        return root => {
+            if (root.hasAttribute('shani-fn')) {
+                addListener(root);
             }
-            parent.querySelectorAll('[shani-fn]').forEach(node => addListener(node));
+            root.querySelectorAll('[shani-fn]').forEach(node => addListener(node));
         };
     })();
     const Utils = (() => {
@@ -783,8 +783,8 @@
                 if (specs?.split(' ').indexOf('modal') > -1) {
                     const spinner = Loader.getSpinner(), attr = shani.emitter.getAttribute('ui-data');
                     const modal = createModal(specs, attr);
-                    shani.target = '#' + modal.id;
-                    shani.insert = 'append';
+                    shani.target ||= '#' + modal.id;
+                    shani.insert ||= 'append';
                     modal.appendChild(spinner);
                     Shani.on('data', () => spinner.remove());
                 }
