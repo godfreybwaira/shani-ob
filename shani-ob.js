@@ -755,6 +755,7 @@
                     btn.setAttribute('type', 'button');
                     btn.setAttribute('shani-fn', 'close');
                     btn.setAttribute('shani-target', target);
+                    btn.innerHTML = '&times;';
                     modal.appendChild(btn);
                 }
             };
