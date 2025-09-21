@@ -1,6 +1,5 @@
 (doc => {
     'use strict';
-    // Initialize DOM listeners
     doc.addEventListener('DOMContentLoaded', () => {
         Shanify(doc.body);
         Observers.mutate(doc.body);
@@ -50,7 +49,6 @@
     })();
     const Convertor = (() => {
         const json = (data) => typeof data === 'string' ? Utils.object(JSON.parse(data)) : data;
-
         return {
             map2json(map) {
                 const obj = Utils.object();
@@ -236,7 +234,7 @@
         const Obj = function (node, e, attrib) {
             this.event = e;
             this.emitter = node;
-            this.timer = Utils.object();
+            this.poll = Utils.object();
             this.params = Utils.explode(node.getAttribute(attrib));
             this.url = node.getAttribute('href') || node.getAttribute('action') || node.value;
             setAttribs(this, node, Shani.SHANI_ATTR, 'shani-');
@@ -252,11 +250,11 @@
          * Make HTTP request at a given interval
          * @param {object} shani
          */
-        const doPolling = shani => {
-            const poll = shani.poll.split(':');
-            const start = Number(poll[0] || 0) * 1000;
-            shani.timer.steps = Number(poll[1] || -1) * 1000;
-            shani.timer.limit = parseInt(poll[2]) || null;
+        const countdown = shani => {
+            const t = shani.timer.split(':');
+            const start = Number(t[0] || 0) * 1000;
+            shani.poll.steps = Number(t[1] || -1) * 1000;
+            shani.poll.limit = parseInt(t[2]) || null;
             setTimeout(Utils.trigger, start, shani, shani.event.type);
         };
         /**
@@ -330,7 +328,6 @@
                     const src = this.event.detail.shani.emitter;
                     const data = Utils.isInput(src) ? src.value : src.innerHTML;
                     HTML.insertData(this.emitter, this, data);
-                    Utils.trigger(this, 'bind');
                 }
             },
             /**
@@ -338,7 +335,6 @@
              */
             close() {
                 const node = !this.target ? this.emitter : Utils.getParentNode(this.emitter, this.target);
-                Utils.trigger(this, 'close');
                 if (node) {
                     return Utils.removeNode(node);
                 }
@@ -349,7 +345,6 @@
                     const cover = getCover(this);
                     window.print();
                     Utils.removeNode(cover);
-                    Utils.trigger(this, 'print');
                 }
             },
             /**
@@ -373,7 +368,6 @@
                                 Utils.removeNode(cover);
                             }
                         });
-                        Utils.trigger(this, 'fs');
                     }).catch(() => Utils.removeNode(cover));
                 }
             },
@@ -392,7 +386,6 @@
                     doc.execCommand('copy');
                     box.remove();
                 }
-                Utils.trigger(this, 'copy');
             },
             /**
              * Add CSS class(es) to extisting node
@@ -441,12 +434,12 @@
         window.addEventListener('popstate', e => history.go(0));
         return {
             HTML_ATTR: ['enctype', 'method'],
-            SHANI_ATTR: ['watch', 'headers', 'poll', 'insert', 'xss', 'history', 'on', 'scheme', 'target'],
+            SHANI_ATTR: ['watch', 'headers', 'timer', 'insert', 'xss', 'history', 'on', 'scheme', 'target'],
             create(node, event, attrib) {
                 if (!node.hasAttribute('disabled')) {
                     const shani = new Obj(node, event, attrib);
-                    if (shani.poll) {
-                        return doPolling(shani);
+                    if (shani.timer) {
+                        return countdown(shani);
                     }
                     Utils.trigger(shani, event.type);
                 }
@@ -508,7 +501,6 @@
                 }
             });
         };
-
         return root => {
             setWatchEvents(root);
             addListener(root);
@@ -522,11 +514,12 @@
             const params = shani.params.get(event)?.split(' ');
             if (params && shani[params[0]] instanceof Function) {
                 shani[params[0]](params);
+                Utils.trigger(shani, params[0]);
             }
         };
         const resubmit = shani => {
-            if (shani.emitter.isConnected && shani.timer.steps > -1 && (!shani.timer.limit || (--shani.timer.limit) > 0)) {
-                setTimeout(Utils.trigger, shani.timer.steps, shani, shani.event.type);
+            if (shani.emitter.isConnected && shani.poll.steps > -1 && (!shani.poll.limit || (--shani.poll.limit) > 0)) {
+                setTimeout(Utils.trigger, shani.poll.steps, shani, shani.event.type);
             }
         };
         return {
@@ -612,8 +605,8 @@
                 }
             });
             on('error', e => {
-                if (shani.timer.limit > 0) {
-                    shani.timer.limit++;
+                if (shani.poll.limit > 0) {
+                    shani.poll.limit++;
                 }
                 HTTP.fire(shani, getHttpResponse(xhr), 400);
             });
@@ -650,7 +643,6 @@
             }
             return payload;
         };
-
         return {
             send(shani, method, startCb, endCb) {
                 const payload = createPayload(shani, method), xhr = new XMLHttpRequest();
@@ -743,9 +735,7 @@
             });
         };
         return shani => httpHandler(shani, new EventSource(shani.url));
-
     })();
-
     const UI = (() => {
         const Carousel = (() => {
             const rotateItems = (carousel, cb) => {
@@ -791,33 +781,38 @@
             doc.addEventListener('click', e => select(e.target));
         })();
         const Modal = (() => {
-            const addCloseBtn = (modal, attr) => {
+            const getCloseBtn = (attr, selector) => {
                 if (attr !== null) {
-                    const position = attr.slice(attr.indexOf(':') + 1), target = '#' + modal.parentElement.id;
+                    const position = attr.slice(attr.indexOf(':') + 1);
                     const btn = doc.createElement('button');
                     btn.className = 'button button-times ' + position;
                     btn.setAttribute('type', 'button');
                     btn.setAttribute('shani-on', 'click:close');
-                    btn.setAttribute('shani-target', target);
+                    btn.setAttribute('shani-target', selector);
                     btn.innerHTML = '&times;';
-                    modal.appendChild(btn);
+                    return btn;
                 }
             };
             const createModal = (specs, data) => {
                 const mdbg = doc.createElement('div'), modal = doc.createElement('div');
+                const wrapper = doc.createElement('div'), btn = getCloseBtn(data, '.modal-background');
+                btn.style.margin = 'var(--spacing)';
+                wrapper.className = 'loader-spin full-size';
+                wrapper.id = Utils.getId();
+                wrapper.style.setProperty('--loader-size', '2.5rem');
                 modal.className = specs;
+                modal.appendChild(btn);
+                modal.appendChild(wrapper);
                 mdbg.className = 'modal-background';
-                mdbg.id = Utils.getId();
-                modal.id = mdbg.id + 'mdl';
                 mdbg.appendChild(modal);
                 doc.body.appendChild(mdbg);
-                addCloseBtn(modal, data);
-                return modal;
+                Shani.on('end', () => wrapper.classList.remove('loader-spin'));
+                return wrapper.id;
             };
             const closeOtherModals = shani => {
-                if (!shani.poll && shani.target) {
+                if (!shani.timer && shani.target) {
                     doc.querySelectorAll('.modal-background').forEach(mc => {
-                        if (mc.querySelector(shani.target) === null) {
+                        if (!mc.querySelector(shani.target)) {
                             Utils.removeNode(mc);
                         }
                     });
@@ -827,10 +822,7 @@
                 const shani = e1.detail.shani, specs = shani.emitter.getAttribute('ui-class');
                 if (specs?.split(' ').indexOf('modal') > -1) {
                     const attr = shani.emitter.getAttribute('ui-data');
-                    const modal = createModal(specs, attr);
-                    shani.target ||= '#' + modal.id;
-                    shani.insert ||= 'append';
-                    Shani.on('data', () => modal.classList.remove('loader-line', 'loader-spin'));
+                    shani.target = '#' + createModal(specs, attr);
                 }
                 Shani.on('data', e => closeOtherModals(e.detail.shani));
             });
